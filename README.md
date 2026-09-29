@@ -70,6 +70,18 @@ Requirements:
 
 Output: `audio-clarity-<version>.jar`.
 
+## How this was made
+
+Audio Clarity was built with AI assistance. The code was written with the help of Claude (Anthropic), under human direction.
+
+The ideas, decisions and sound are mine:
+- A compressor like the ones audio engineers use, with Master as the final gain.
+- Music skipping the chain, and the EQ placed after the compressor.
+- Every value was tuned by ear in-game: threshold, ratio, attack, release, make-up, output, the category mix, the per-sound tweaks and the EQ curve.
+- Each version was tested in real play before it was kept.
+
+The AI did the engineering: the OpenAL routing, the DSP code and the mixins.
+
 ## License
 
 [GPL-3.0](LICENSE)

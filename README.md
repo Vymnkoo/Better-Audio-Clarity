@@ -1,4 +1,4 @@
-Note: This mod uses AI assistance with the help of Claude (Anthropic), under human direction.
+**Note**: This mod uses AI assistance with the help of Claude (Anthropic), under human direction.
 
 # Better Audio Clarity
 

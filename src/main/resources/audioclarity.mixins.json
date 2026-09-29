@@ -1,0 +1,21 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "com.groundzero.audioclarity.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "client": [
+    "OptionsSoundMixMixin",
+    "LibraryInvoker",
+    "LibraryMasterBusMixin",
+    "SoundEngineMixerMixin",
+    "ChannelGainMixin",
+    "ChannelHandleMusicMixin",
+    "ChannelAccessAccessor",
+    "SoundPhysicsSkipMusicMixin",
+    "ScreenMeterMixin",
+    "MinecraftTickMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

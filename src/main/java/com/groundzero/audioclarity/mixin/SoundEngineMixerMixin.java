@@ -1,0 +1,88 @@
+package com.groundzero.audioclarity.mixin;
+
+import com.groundzero.audioclarity.ClarityConfig;
+import com.groundzero.audioclarity.audio.MasterBus;
+import com.groundzero.audioclarity.audio.MusicRoute;
+import com.mojang.blaze3d.audio.Library;
+import net.minecraft.client.resources.sounds.SoundInstance;
+import net.minecraft.client.sounds.ChannelAccess;
+import net.minecraft.client.sounds.SoundEngine;
+import net.minecraft.sounds.SoundSource;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.Redirect;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+
+import java.util.concurrent.CompletableFuture;
+
+/**
+ * Per-sound adjustments: every sound's volume is scaled by {@link ClarityConfig#soundGain}.
+ *
+ * <p>Two paths set a sound's volume in 26.2, and both need it:
+ * <ul>
+ *   <li>starting a sound - play() works the volume out with calculateVolume(float, SoundSource)
+ *       directly, so play() notes which sound it is and that call applies its gain;</li>
+ *   <li>sounds that keep updating while they play (minecarts, music...) - the tick loop uses
+ *       calculateVolume(SoundInstance).</li>
+ * </ul>
+ */
+@Mixin(SoundEngine.class)
+public abstract class SoundEngineMixerMixin {
+
+    /** The sound play() is starting, until its volume has been worked out. Render thread only. */
+    @Unique
+    private SoundInstance audioclarity$starting;
+
+    /** The sound play() is handling, for the whole call (music routing needs it late in play()). */
+    @Unique
+    private SoundInstance audioclarity$playing;
+
+    @Inject(method = "play", at = @At("HEAD"))
+    private void audioclarity$noteStarting(SoundInstance sound, CallbackInfoReturnable<?> cir) {
+        audioclarity$starting = sound;
+        audioclarity$playing = sound;
+    }
+
+    @Inject(method = "play", at = @At("RETURN"))
+    private void audioclarity$doneStarting(SoundInstance sound, CallbackInfoReturnable<?> cir) {
+        audioclarity$starting = null;
+        audioclarity$playing = null;
+    }
+
+    /**
+     * Streamed music gets its channel on the real sound card instead of the loopback mix, so it
+     * skips the master compressor (see {@link MusicRoute}).
+     */
+    @Redirect(method = "play", at = @At(value = "INVOKE",
+            target = "Lnet/minecraft/client/sounds/ChannelAccess;createHandle(Lcom/mojang/blaze3d/audio/Library$Pool;)Ljava/util/concurrent/CompletableFuture;"))
+    private CompletableFuture<ChannelAccess.ChannelHandle> audioclarity$musicAroundCompressor(ChannelAccess access, Library.Pool pool) {
+        SoundInstance sound = audioclarity$playing;
+        if (sound != null && pool == Library.Pool.STREAMING && sound.getSource() == SoundSource.MUSIC && MasterBus.active() != null && ClarityConfig.musicSkipsCompressor()) {
+            return MusicRoute.createOnSoundCard(((ChannelAccessAccessor) access).audioclarity$executor(), () -> access.createHandle(pool));
+        }
+        return access.createHandle(pool);
+    }
+
+    @Inject(method = "calculateVolume(FLnet/minecraft/sounds/SoundSource;)F", at = @At("RETURN"), cancellable = true)
+    private void audioclarity$startGain(float volume, net.minecraft.sounds.SoundSource source, CallbackInfoReturnable<Float> cir) {
+        SoundInstance sound = audioclarity$starting;
+        if (sound != null) {
+            audioclarity$starting = null; // once per play()
+            float g = ClarityConfig.soundGain(sound.getIdentifier().toString());
+            if (g != 1f) {
+                cir.setReturnValue(cir.getReturnValueF() * g);
+            }
+        }
+    }
+
+    @Inject(method = "calculateVolume(Lnet/minecraft/client/resources/sounds/SoundInstance;)F",
+            at = @At("RETURN"), cancellable = true)
+    private void audioclarity$tickGain(SoundInstance sound, CallbackInfoReturnable<Float> cir) {
+        float g = ClarityConfig.soundGain(sound.getIdentifier().toString());
+        if (g != 1f) {
+            cir.setReturnValue(cir.getReturnValueF() * g);
+        }
+    }
+}

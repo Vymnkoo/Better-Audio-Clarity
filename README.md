@@ -4,11 +4,10 @@ A mastering chain for Minecraft's sound. Client-side Fabric mod for **Minecraft 
 
 ## TL;DR
 
-Makes Minecraft sound like a polished, professionally mixed game.
+Makes Minecraft sound slightly better.
 
 - 🔊 **Quiet sounds are easier to hear, and loud ones don't blast your ears.**
 - ✨ **Clearer sound:** less muffled, more detail in footsteps, mobs and blocks.
-- 🛡️ **No crackling or distortion**, even when a lot happens at once.
 - 🎵 **Music is never interrupted** by fights or explosions.
 - ⚡ **No delay**, and your volume slider works as usual.
 

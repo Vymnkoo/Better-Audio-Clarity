@@ -1,3 +1,5 @@
+Note: This mod uses AI assistance with the help of Claude (Anthropic), under human direction.
+
 # Better Audio Clarity
 
 A mastering chain for Minecraft's sound. Client-side Fabric mod for **Minecraft 26.3**. It needs only Fabric Loader; Fabric API isn't required.

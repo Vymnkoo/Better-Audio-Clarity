@@ -1,4 +1,4 @@
-# Audio Clarity
+# Better Audio Clarity
 
 A mastering chain for Minecraft's sound. Client-side Fabric mod for **Minecraft 26.3**. It needs only Fabric Loader; Fabric API isn't required.
 
@@ -16,7 +16,7 @@ Install it and play. No setup needed.
 
 ## Technical overview
 
-Minecraft's sound can come out dark, muffled and uneven. Audio Clarity puts a studio-style master chain on everything the game plays:
+Minecraft's sound can come out dark, muffled and uneven. Better Audio Clarity puts a studio-style master chain on everything the game plays:
 
 ```
 game mix → compressor → make-up → output → EQ → limiter → Master slider → sound card
@@ -40,7 +40,7 @@ game mix → compressor → make-up → output → EQ → limiter → Master sli
 
 ## How it works
 
-Minecraft normally mixes straight into the sound card through OpenAL. Audio Clarity makes it mix into an OpenAL Soft **loopback device** instead. Every sound, every mod and every reverb effect still happens inside OpenAL.
+Minecraft normally mixes straight into the sound card through OpenAL. Better Audio Clarity makes it mix into an OpenAL Soft **loopback device** instead. Every sound, every mod and every reverb effect still happens inside OpenAL.
 
 The real sound card then plays a single stereo source that uses `AL_SOFT_callback_buffer`. Whenever the card needs audio, the callback renders exactly that many frames from the loopback mix, runs them through the chain in place and hands them back.
 
@@ -50,7 +50,7 @@ If the OpenAL build lacks the needed extensions, or anything fails to start, aud
 
 ## Configuration
 
-Settings live in `config/audio-clarity.json`, which is created on first start with the defaults. **Saved changes apply live within a second.** Only `master_bus` and `latency` need F3+T. A file with a typo is ignored (the log says so), and the last good settings stay in use.
+Settings live in `config/better-audio-clarity.json`, which is created on first start with the defaults. **Saved changes apply live within a second.** Only `master_bus` and `latency` need F3+T. A file with a typo is ignored (the log says so), and the last good settings stay in use.
 
 | Key | What it does |
 |---|---|
@@ -82,11 +82,11 @@ Requirements:
 - JDK 25
 - A Fabric instance of the target version, launched once in the Modrinth App
 
-Output: `audio-clarity-<version>.jar`.
+Output: `better-audio-clarity-<version>.jar`.
 
 ## How this was made
 
-Audio Clarity was built with AI assistance. The code was written with the help of Claude (Anthropic), under human direction.
+Better Audio Clarity was built with AI assistance. The code was written with the help of Claude (Anthropic), under human direction.
 
 The ideas, decisions and sound are mine:
 - A compressor like the ones audio engineers use, with Master as the final gain.

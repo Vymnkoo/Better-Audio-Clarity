@@ -4,7 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Audio Clarity: a mastering chain for Minecraft's sound.
+ * Better Audio Clarity: a mastering chain for Minecraft's sound.
  *
  * <ul>
  *   <li>A live master compressor + limiter on everything the game plays (see
@@ -16,13 +16,13 @@ import org.slf4j.LoggerFactory;
  *   <li>A small IN / GR / OUT meter in the corner of Music &amp; Sound.</li>
  * </ul>
  *
- * Everything is set in config/audio-clarity.json ({@link ClarityConfig}). No entrypoint: the mod
+ * Everything is set in config/better-audio-clarity.json ({@link ClarityConfig}). No entrypoint: the mod
  * is only mixins, and the config loads when the sound engine starts.
  */
 public final class AudioClarity {
 
-    public static final String MOD_ID = "audio_clarity";
-    public static final Logger LOGGER = LoggerFactory.getLogger("Audio Clarity");
+    public static final String MOD_ID = "better_audio_clarity";
+    public static final Logger LOGGER = LoggerFactory.getLogger("Better Audio Clarity");
 
     private AudioClarity() {}
 }

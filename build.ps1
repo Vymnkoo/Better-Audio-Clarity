@@ -1,4 +1,4 @@
-# Builds audio-clarity-1.0.0+26.3.jar without Gradle/Loom.
+# Builds better-audio-clarity-<version>.jar without Gradle/Loom.
 #
 # Minecraft 26.x ships unobfuscated and Fabric runs it under Mojang's own names, so the mod
 # compiles straight against the vanilla client jar plus the libraries the Modrinth App already
@@ -51,7 +51,7 @@ if ($LASTEXITCODE -ne 0) { throw "javac failed" }
 
 Copy-Item -Recurse (Join-Path $root 'src\main\resources\*') $classes
 $modVersion = (Get-Content (Join-Path $root 'src\main\resources\fabric.mod.json') -Raw | ConvertFrom-Json).version
-$out = Join-Path $root "audio-clarity-$modVersion.jar"
+$out = Join-Path $root "better-audio-clarity-$modVersion.jar"
 if (Test-Path $out) { Remove-Item $out }
 & (Join-Path $Jdk 'bin\jar.exe') --create --file $out -C $classes .
 if ($LASTEXITCODE -ne 0) { throw "jar failed" }

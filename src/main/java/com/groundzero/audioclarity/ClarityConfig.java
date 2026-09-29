@@ -24,7 +24,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import static com.groundzero.audioclarity.AudioClarity.LOGGER;
 
 /**
- * config/audio-clarity.json. Ships with the Emberwild tuning; every value can be edited in the
+ * config/better-audio-clarity.json. Ships with the Emberwild tuning; every value can be edited in the
  * file, and is picked up about a second after the file is saved (the file is checked from the
  * client tick). EQ, compressor, category mix and sound adjustments change live; master_bus and
  * latency need the sound engine restarted (F3+T or a game restart).
@@ -169,7 +169,7 @@ public final class ClarityConfig {
     }
 
     static Path file() {
-        return FabricLoader.getInstance().getConfigDir().resolve("audio-clarity.json");
+        return FabricLoader.getInstance().getConfigDir().resolve("better-audio-clarity.json");
     }
 
     private static boolean engineStarted;
@@ -202,6 +202,16 @@ public final class ClarityConfig {
     /** Reads the file (creating it with the defaults if missing). */
     public static synchronized void load() {
         Path f = file();
+        // The mod was called "Audio Clarity" before 1.2.0: keep that config.
+        Path old = f.resolveSibling("audio-clarity.json");
+        if (!Files.exists(f) && Files.exists(old)) {
+            try {
+                Files.move(old, f);
+                LOGGER.info("Moved config/audio-clarity.json to config/better-audio-clarity.json");
+            } catch (Exception e) {
+                LOGGER.warn("Could not move the old config/audio-clarity.json: {}", e.toString());
+            }
+        }
         JsonObject o = new JsonObject();
         boolean exists = Files.exists(f);
         try {
@@ -210,7 +220,7 @@ public final class ClarityConfig {
                 o = JsonParser.parseString(Files.readString(f, StandardCharsets.UTF_8)).getAsJsonObject();
             }
         } catch (Exception e) {
-            LOGGER.error("config/audio-clarity.json has a mistake in it, keeping the previous settings: {}", e.toString());
+            LOGGER.error("config/better-audio-clarity.json has a mistake in it, keeping the previous settings: {}", e.toString());
             return;
         }
         missing = !exists;
@@ -284,7 +294,7 @@ public final class ClarityConfig {
     private static void save() {
         Compressor c = compressor;
         JsonObject o = new JsonObject();
-        o.addProperty("_help", "Audio Clarity settings. Saved changes apply within a second "
+        o.addProperty("_help", "Better Audio Clarity settings. Saved changes apply within a second "
                 + "(master_bus and latency: press F3+T). master_bus=false turns the whole chain off - "
                 + "use it if the game has no sound or crackles.");
         o.addProperty("master_bus", masterBus);
@@ -343,7 +353,7 @@ public final class ClarityConfig {
             Files.writeString(f, GSON.toJson(o), StandardCharsets.UTF_8);
             lastSeen = Files.getLastModifiedTime(f);
         } catch (Exception e) {
-            LOGGER.warn("Could not write config/audio-clarity.json: {}", e.toString());
+            LOGGER.warn("Could not write config/better-audio-clarity.json: {}", e.toString());
         }
     }
 

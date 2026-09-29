@@ -202,7 +202,7 @@ public final class ClarityConfig {
     /** Reads the file (creating it with the defaults if missing). */
     public static synchronized void load() {
         Path f = file();
-        // The mod was called "Audio Clarity" before 1.2.0: keep that config.
+        // Pre-release builds were called "Audio Clarity": keep that config.
         Path old = f.resolveSibling("audio-clarity.json");
         if (!Files.exists(f) && Files.exists(old)) {
             try {

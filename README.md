@@ -1,4 +1,4 @@
-**Note**: This mod is experimental and uses AI assistance with the help of Claude (Anthropic), under human direction. I might also not update this mod anytime soon. If you want to make a fork version, then go for it (:
+**Note**: This mod is experimental and uses AI assistance with the help of Claude (Anthropic), under human direction. I might not update this mod anytime soon so If you want to make a fork version, then go for it (:
 
 # Better Audio Clarity
 

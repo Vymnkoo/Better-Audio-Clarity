@@ -11,6 +11,7 @@
     "issues": "https://github.com/Vymnkoo/Better-Audio-Clarity/issues"
   },
   "license": "GPL-3.0-only",
+  "icon": "assets/better_audio_clarity/icon.png",
   "environment": "client",
   "mixins": [
     "audioclarity.mixins.json"

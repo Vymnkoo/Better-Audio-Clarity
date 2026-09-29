@@ -2,6 +2,22 @@
 
 A mastering chain for Minecraft's sound. Client-side Fabric mod for **Minecraft 26.3**. It needs only Fabric Loader; Fabric API isn't required.
 
+## In plain words
+
+Think of how a song sounds on a phone recording compared with the finished song on Spotify. The finished one sounds clear, even and "polished", because a sound engineer ran it through a few tools before release. Audio Clarity does the same thing for Minecraft, live, while you play.
+
+- **Nothing gets lost or too loud.** Normally a creeper hiss or a footstep can be hard to hear, and then an explosion or a door slam is suddenly way too loud. Audio Clarity gently turns quiet sounds up and loud sounds down, so everything sits at a comfortable level. You hear more of the world without reaching for the volume.
+- **Clearer, brighter sound.** Minecraft's sounds can feel dull, like listening through a blanket. Audio Clarity removes some of that "muddiness" and brings out the crisp detail: footsteps, mobs, digging and placing blocks.
+- **No crackle or distortion.** A safety net at the very end stops the sound from ever breaking up, even when lots happens at once.
+- **Music stays smooth.** Background music isn't affected by any of this, so a big fight never makes the music suddenly dip.
+- **A better balance out of the box.** Rain, mobs, blocks and so on are pre-mixed to sit well together. You can still turn any of them down.
+- **Your volume slider still works as usual.** Master Volume only changes how loud the finished sound is. It doesn't change the sound itself.
+- **No delay.** The sound isn't slowed down. What you hear still matches what you see.
+
+There's nothing to set up: install it and play. If you like to tinker, every setting is in one file, and changes apply instantly while the game runs.
+
+## Technical overview
+
 Minecraft's sound can come out dark, muffled and uneven. Audio Clarity puts a studio-style master chain on everything the game plays:
 
 ```

@@ -96,8 +96,8 @@ public final class ClarityConfig {
             "minecraft:entity.firework_rocket.*", -8.0f,
             "player|*.step", 10.0f,
             "minecraft:entity.wither.*", -6.0f,    // the Wither only - wither skeletons are "wither_skeleton"
-            "master|minecraft:ui.*", -8.0f,          // UI sounds servers play at full Master volume (Hypixel countdown)
-            "minecraft:block.note_block.*", -4.0f);
+            "master|minecraft:ui.*", -14.0f,          // UI sounds servers play at full Master volume (Hypixel countdown)
+            "minecraft:block.note_block.*", -6.0f);
 
     public static final float MUTE_DB = -40f;
     private static final int MAX_BANDS = 10;

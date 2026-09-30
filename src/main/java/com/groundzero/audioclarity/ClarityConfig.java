@@ -94,7 +94,8 @@ public final class ClarityConfig {
             "minecraft:entity.enderman.ambient", 7.5f,
             "minecraft:entity.tnt.primed", 2.5f,
             "minecraft:entity.firework_rocket.*", -8.0f,
-            "player|*.step", 6.0f);
+            "player|*.step", 6.0f,
+            "minecraft:entity.wither.*", -6.0f);   // the Wither only - wither skeletons are "wither_skeleton"
 
     public static final float MUTE_DB = -40f;
     private static final int MAX_BANDS = 10;

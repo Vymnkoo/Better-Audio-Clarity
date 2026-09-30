@@ -97,7 +97,8 @@ public final class ClarityConfig {
             "player|*.step", 10.0f,
             "minecraft:entity.wither.*", -6.0f,    // the Wither only - wither skeletons are "wither_skeleton"
             "master|minecraft:ui.*", -14.0f,          // UI sounds servers play at full Master volume (Hypixel countdown)
-            "minecraft:block.note_block.*", -6.0f);
+            "minecraft:block.note_block.*", -6.0f,
+            "minecraft:entity.splash_potion.break", -8.0f);   // splash and lingering potions shattering
 
     public static final float MUTE_DB = -40f;
     private static final int MAX_BANDS = 10;

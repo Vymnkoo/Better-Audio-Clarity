@@ -115,7 +115,8 @@ public final class ClarityConfig {
             "minecraft:block.tripwire.click_*", -6.0f,
             "minecraft:block.nether_sprouts.hit", -5.0f,
             "minecraft:block.nether_sprouts.fall", -5.0f,
-            "minecraft:block.suspicious_gravel.*", -5.0f);
+            "minecraft:block.suspicious_gravel.*", -5.0f,
+            "minecraft:entity.zombified_piglin.ambient", -4.0f);   // the Nether's constant grunting
 
     public static final float MUTE_DB = -40f;
     private static final int MAX_BANDS = 10;

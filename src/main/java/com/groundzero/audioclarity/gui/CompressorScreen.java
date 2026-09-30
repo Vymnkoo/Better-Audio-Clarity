@@ -37,38 +37,38 @@ public class CompressorScreen extends TabbedScreen {
         int left = width / 2 - SLIDER_W - 5;
         int right = width / 2 + 5;
         int y = TOP;
-        addRenderableWidget(new ParamSlider(left, y, "Threshold", -60f, 0f, false, p.thresholdDb(), v -> fmt("%.1f dB", v),
+        addTuning(new ParamSlider(left, y, "Threshold", -60f, 0f, false, p.thresholdDb(), v -> fmt("%.1f dB", v),
                 (q, v) -> with(q, v, q.ratio(), q.attackMs(), q.releaseMs(), q.kneeDb(), q.makeupDb(), q.outputDb())));
-        addRenderableWidget(new ParamSlider(right, y, "Ratio", 1f, 20f, true, p.ratio(), v -> fmt("%.2f:1", v),
+        addTuning(new ParamSlider(right, y, "Ratio", 1f, 20f, true, p.ratio(), v -> fmt("%.2f:1", v),
                 (q, v) -> with(q, q.thresholdDb(), v, q.attackMs(), q.releaseMs(), q.kneeDb(), q.makeupDb(), q.outputDb())));
         y += ROW;
-        addRenderableWidget(new ParamSlider(left, y, "Attack", 0.1f, 200f, true, p.attackMs(), v -> fmt(v < 10 ? "%.2f ms" : "%.0f ms", v),
+        addTuning(new ParamSlider(left, y, "Attack", 0.1f, 200f, true, p.attackMs(), v -> fmt(v < 10 ? "%.2f ms" : "%.0f ms", v),
                 (q, v) -> with(q, q.thresholdDb(), q.ratio(), v, q.releaseMs(), q.kneeDb(), q.makeupDb(), q.outputDb())));
-        addRenderableWidget(new ParamSlider(right, y, "Release", 10f, 2000f, true, p.releaseMs(), v -> fmt("%.0f ms", v),
+        addTuning(new ParamSlider(right, y, "Release", 10f, 2000f, true, p.releaseMs(), v -> fmt("%.0f ms", v),
                 (q, v) -> with(q, q.thresholdDb(), q.ratio(), q.attackMs(), v, q.kneeDb(), q.makeupDb(), q.outputDb())));
         y += ROW;
-        addRenderableWidget(new ParamSlider(left, y, "Knee", 0f, 24f, false, p.kneeDb(), v -> fmt("%.1f dB", v),
+        addTuning(new ParamSlider(left, y, "Knee", 0f, 24f, false, p.kneeDb(), v -> fmt("%.1f dB", v),
                 (q, v) -> with(q, q.thresholdDb(), q.ratio(), q.attackMs(), q.releaseMs(), v, q.makeupDb(), q.outputDb())));
-        addRenderableWidget(new ParamSlider(right, y, "Make-up", 0f, 24f, false, p.makeupDb(), v -> fmt("+%.1f dB", v),
+        addTuning(new ParamSlider(right, y, "Make-up", 0f, 24f, false, p.makeupDb(), v -> fmt("+%.1f dB", v),
                 (q, v) -> with(q, q.thresholdDb(), q.ratio(), q.attackMs(), q.releaseMs(), q.kneeDb(), v, q.outputDb())));
         y += ROW;
-        addRenderableWidget(new ParamSlider(left, y, "Output", -24f, 12f, false, p.outputDb(), v -> fmt("%+.1f dB", v),
+        addTuning(new ParamSlider(left, y, "Output", -24f, 12f, false, p.outputDb(), v -> fmt("%+.1f dB", v),
                 (q, v) -> with(q, q.thresholdDb(), q.ratio(), q.attackMs(), q.releaseMs(), q.kneeDb(), q.makeupDb(), v)));
-        addRenderableWidget(Button.builder(limiterLabel(), b -> {
+        addTuning(Button.builder(limiterLabel(), b -> {
             update(new Compressor(p.enabled(), p.thresholdDb(), p.ratio(), p.attackMs(), p.releaseMs(), p.kneeDb(), p.makeupDb(), p.outputDb(), !p.limiter(), p.latency(), p.lookaheadMs()));
             b.setMessage(limiterLabel());
         }).bounds(right, y, SLIDER_W, 20).build());
         y += ROW;
-        addRenderableWidget(Button.builder(enabledLabel(), b -> {
+        addTuning(Button.builder(enabledLabel(), b -> {
             update(new Compressor(!p.enabled(), p.thresholdDb(), p.ratio(), p.attackMs(), p.releaseMs(), p.kneeDb(), p.makeupDb(), p.outputDb(), p.limiter(), p.latency(), p.lookaheadMs()));
             b.setMessage(enabledLabel());
         }).bounds(left, y, SLIDER_W, 20).build());
-        addRenderableWidget(Button.builder(latencyLabel(), b -> {
+        addTuning(Button.builder(latencyLabel(), b -> {
             update(new Compressor(p.enabled(), p.thresholdDb(), p.ratio(), p.attackMs(), p.releaseMs(), p.kneeDb(), p.makeupDb(), p.outputDb(), p.limiter(), p.latency().next(), p.lookaheadMs()));
             b.setMessage(latencyLabel());
         }).bounds(right, y, SLIDER_W, 20).build());
         y += ROW;
-        addRenderableWidget(new ParamSlider(left, y, "Lookahead", 0f, 20f, false, p.lookaheadMs(),
+        addTuning(new ParamSlider(left, y, "Lookahead", 0f, 20f, false, p.lookaheadMs(),
                 v -> v < 0.05f ? "off" : fmt("%.1f ms", v),
                 (q, v) -> new Compressor(q.enabled(), q.thresholdDb(), q.ratio(), q.attackMs(), q.releaseMs(), q.kneeDb(),
                         q.makeupDb(), q.outputDb(), q.limiter(), q.latency(), v)));

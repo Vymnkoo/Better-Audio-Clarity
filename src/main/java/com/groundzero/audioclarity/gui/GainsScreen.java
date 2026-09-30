@@ -40,7 +40,7 @@ public class GainsScreen extends TabbedScreen {
         for (String category : ClarityConfig.mixLevels().keySet()) {
             int x = i % 2 == 0 ? left : right;
             int y = TOP + (i / 2) * ROW;
-            addRenderableWidget(new MixSlider(x, y, category));
+            addTuning(new MixSlider(x, y, category));
             i++;
         }
         addRenderableWidget(Button.builder(Component.literal("Reset mix to defaults"), b -> {

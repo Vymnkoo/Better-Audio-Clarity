@@ -61,7 +61,7 @@ public class SettingsScreen extends TabbedScreen {
     public void extractRenderState(GuiGraphicsExtractor g, int mouseX, int mouseY, float partialTick) {
         super.extractRenderState(g, mouseX, mouseY, partialTick);
         int y = TOP + 4 + ROW * 4 + 16;
-        g.centeredText(font, "Output = overall volume of the finished mix (raise it for quiet headphones).", width / 2, y, 0xFFA0A0A0);
+        g.centeredText(font, "Output = overall volume of the finished mix. 0 dB = as tuned; raise it for quiet headphones.", width / 2, y, 0xFFA0A0A0);
         g.centeredText(font, "Everything is saved in config/better-audio-clarity.json", width / 2, y + 12, 0xFF808080);
     }
 
@@ -80,9 +80,12 @@ public class SettingsScreen extends TabbedScreen {
             return Math.round((MIN_DB + (MAX_DB - MIN_DB) * (float) value) * 10f) / 10f;
         }
 
+        /** Shown relative to the tuned default, so the tuned level reads 0 dB (the gain itself is unchanged). */
         @Override
         protected void updateMessage() {
-            setMessage(Component.literal(String.format(Locale.ROOT, "Output: %+.1f dB", db())));
+            float shown = Math.round((db() - ClarityConfig.DEFAULT_COMPRESSOR.outputDb()) * 10f) / 10f;
+            setMessage(Component.literal(shown == 0f ? "Output: 0.0 dB"
+                    : String.format(Locale.ROOT, "Output: %+.1f dB", shown)));
         }
 
         @Override

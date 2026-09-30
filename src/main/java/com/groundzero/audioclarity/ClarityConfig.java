@@ -98,7 +98,21 @@ public final class ClarityConfig {
             "minecraft:entity.wither.*", -6.0f,    // the Wither only - wither skeletons are "wither_skeleton"
             "master|minecraft:ui.*", -14.0f,          // UI sounds servers play at full Master volume (Hypixel countdown)
             "minecraft:block.note_block.*", -6.0f,
-            "minecraft:entity.splash_potion.break", -8.0f);   // splash and lingering potions shattering
+            "minecraft:entity.splash_potion.break", -8.0f,    // splash and lingering potions shattering
+            // Measured against similar sounds (every block "break", every "hit"...): these stood
+            // 9-15 dB above the rest by accident. Cut by about two thirds of that, keeping their character.
+            "minecraft:block.anvil.place", -10.0f,
+            "minecraft:block.glass.break", -8.0f,
+            "minecraft:entity.fishing_bobber.splash", -8.0f,
+            "minecraft:item.firecharge.use", -8.0f,
+            "minecraft:block.ladder.step", -7.0f,
+            "minecraft:block.ladder.hit", -7.0f,
+            "minecraft:block.ladder.fall", -7.0f,
+            "minecraft:block.shulker_box.*", -7.0f,
+            "minecraft:block.tripwire.click_*", -6.0f,
+            "minecraft:block.nether_sprouts.hit", -5.0f,
+            "minecraft:block.nether_sprouts.fall", -5.0f,
+            "minecraft:block.suspicious_gravel.*", -5.0f);
 
     public static final float MUTE_DB = -40f;
     private static final int MAX_BANDS = 10;

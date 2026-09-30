@@ -35,13 +35,14 @@ game mix → compressor → make-up → output → EQ → limiter → Master sli
 - **Lookahead safety limiter** at −1 dB. It sees loud peaks 10 ms ahead and lowers the volume smoothly before they arrive, so nothing clips or crackles, and recordings stay clean after encoding.
 - **Music and UI skip the chain.** They play straight to the sound card, so loud moments never pump the music down and menu clicks never make the compressor pump the game.
 - **Server sounds that would pump skip it too.** Servers often use normal sounds as menu "ticks" or countdowns: button clicks (mcpvp), UI clicks in the Master category and note block ticks (Hypixel). They go around the compressor, and the Hypixel countdown is turned down.
-- **One Output for everything.** The Output gain applies to music and UI as well, so raising the overall level never buries them.
+- **One Output for everything.** The Output gain (default +5.5 dB) applies to music and UI as well, so raising the overall level never buries them.
+- **Settings in Mod Menu.** Mods → Better Audio Clarity → config: an **Output** slider (raise it for quiet headphones, lower it for loud speakers) and on/off switches for the compressor, EQ, music/UI bypass and the meter. Heard live, saved on Done. The tuned compressor, EQ and mix values stay in the config file, so they can't be wrecked by accident.
 - **Category mix.** Each sound category has a tuned level at 100% on its slider (music at 14%). Players can still turn anything down from there.
 - **Per-sound adjustments** in dB, for single sounds, groups (`minecraft:entity.zombie.*`, `*.step`) or one category only (`player|*.step` = just your own footsteps, +10 dB by default).
 - **First start sets the category sliders to 100%, once**, so sliders lowered in vanilla don't lower a category twice. Master and Music are left alone.
 - **Meter.** IN / GR / OUT bars at the bottom of Music & Sound, above Done.
 - **Low latency.** No extra buffering: the sound card pulls audio through the chain on demand. The delay is the card's own period (~10 ms) plus the limiter's 10 ms lookahead.
-- **Level.** About −21 LUFS in normal play, with peaks held at −1 dB: a natural level for game audio. For YouTube-level recordings, add Gain + Limiter in OBS.
+- **Level.** About −21 to −19 LUFS in normal play, with peaks held at −1 dB: a natural level for game audio. For YouTube-level recordings, add Gain + Limiter in OBS.
 ## How it works
 
 Minecraft normally mixes straight into the sound card through OpenAL. Better Audio Clarity makes it mix into an OpenAL Soft **loopback device** instead. Every sound, every mod and every reverb effect still happens inside OpenAL.
@@ -53,7 +54,7 @@ Sounds that skip the chain (music, UI and the skip list) are streamed, and their
 If the OpenAL build lacks the needed extensions, or anything fails to start, audio falls back to Minecraft's normal path.
 ## Configuration
 
-Settings live in `config/better-audio-clarity.json`, which is created on first start with the defaults. **Saved changes apply live within a second.** Only `master_bus` and `latency` need F3+T. A file with a typo is ignored (the log says so), and the last good settings stay in use.
+The everyday settings (Output and the on/off switches) are in **Mod Menu** (optional). Everything lives in `config/better-audio-clarity.json`, which is created on first start with the defaults. **Saved changes apply live within a second.** Only `master_bus` and `latency` need F3+T. A file with a typo is ignored (the log says so), and the last good settings stay in use.
 
 | Key | What it does |
 |---|---|
@@ -75,6 +76,7 @@ Settings live in `config/better-audio-clarity.json`, which is created on first s
 - If Sound Physics Remastered is installed, its reverb is skipped for sounds that bypass the chain (music, UI, the skip list).
 - Voice chat mods (Simple Voice Chat, Plasmo Voice) open their own OpenAL device, so voice doesn't go through the chain.
 - Tested on Hypixel and mcpvp.com (through ViaFabricPlus).
+- Mod Menu is optional: with it, the mod gets a settings screen in the mod list.
 - Not compatible with Emberwild AutoTune, which hooks the same code. `fabric.mod.json` declares this.
 
 ## Building

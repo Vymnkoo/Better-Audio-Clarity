@@ -63,7 +63,7 @@ public final class ClarityConfig {
 
     /** Tuned by ear by Vymnkoo, 2026-09-30: gentler and more transparent than the first Emberwild tuning. */
     public static final Compressor DEFAULT_COMPRESSOR = new Compressor(true, -31.478872f, 1.5906258f, 49.729725f, 247.50362f,
-            11.323944f, 5.4084506f, 2.9f, true, Latency.LOW, 10f);
+            11.323944f, 5.4084506f, 3.5f, true, Latency.LOW, 10f);
 
     /**
      * Against Minecraft's dark, muffled tone: clear sub rumble, take a little mud out of the
@@ -86,7 +86,7 @@ public final class ClarityConfig {
             "ambient", 0.32042253f,
             "voice", 0.3732394f,
             "ui", 0.5058152f,
-            "music", 0.1f);   // soft background music; it skips the compressor, so it stays at this level
+            "music", 0.14f);   // soft background music; it skips the compressor, so it stays at this level
 
     /** Per-sound adjustments in dB on top of the category mix. */
     static final Map<String, Float> DEFAULT_SOUNDS = ordered(

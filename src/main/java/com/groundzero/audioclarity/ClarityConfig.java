@@ -75,7 +75,7 @@ public final class ClarityConfig {
             new Band("peak", 3500f, 2f, 0.9f),
             new Band("highshelf", 9000f, 3f, 0.707f)));
 
-    /** Level of each category at 100% on its slider (options.txt names). Music is left at 1. */
+    /** Level of each category at 100% on its slider (options.txt names). */
     static final Map<String, Float> DEFAULT_MIX = ordered(
             "record", 0.3818687f,
             "weather", 0.2339578f,
@@ -85,7 +85,8 @@ public final class ClarityConfig {
             "player", 0.113389f,
             "ambient", 0.32042253f,
             "voice", 0.3732394f,
-            "ui", 0.2713747f);
+            "ui", 0.2713747f,
+            "music", 0.1f);   // soft background music; it skips the compressor, so it stays at this level
 
     /** Per-sound adjustments in dB on top of the category mix. */
     static final Map<String, Float> DEFAULT_SOUNDS = ordered(

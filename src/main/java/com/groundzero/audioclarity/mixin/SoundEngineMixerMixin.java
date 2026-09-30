@@ -18,6 +18,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.concurrent.CompletableFuture;
 
+import static com.groundzero.audioclarity.AudioClarity.LOGGER;
+
 /**
  * Per-sound adjustments: every sound's volume is scaled by {@link ClarityConfig#soundGain}.
  *
@@ -75,7 +77,12 @@ public abstract class SoundEngineMixerMixin {
             target = "Lnet/minecraft/client/sounds/ChannelAccess;createHandle(Lcom/mojang/blaze3d/audio/Library$Pool;)Ljava/util/concurrent/CompletableFuture;"))
     private CompletableFuture<ChannelAccess.ChannelHandle> audioclarity$aroundCompressor(ChannelAccess access, Library.Pool pool) {
         SoundInstance sound = audioclarity$playing;
-        if (sound != null && pool == Library.Pool.STREAMING && MasterBus.active() != null && ClarityConfig.skipsChain(sound.getSource())) {
+        boolean around = sound != null && pool == Library.Pool.STREAMING && MasterBus.active() != null && ClarityConfig.skipsChain(sound.getSource());
+        if (sound != null && ClarityConfig.logSounds()) {
+            LOGGER.info("[sound] {} ({}) -> {}", sound.getIdentifier(), sound.getSource().getName(),
+                    around ? "sound card, around the compressor" : "through the compressor (" + pool + ")");
+        }
+        if (around) {
             return MusicRoute.createOnSoundCard(((ChannelAccessAccessor) access).audioclarity$executor(), () -> access.createHandle(pool));
         }
         return access.createHandle(pool);

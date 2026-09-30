@@ -85,7 +85,7 @@ public final class ClarityConfig {
             "player", 0.113389f,
             "ambient", 0.32042253f,
             "voice", 0.3732394f,
-            "ui", 0.2713747f,
+            "ui", 0.5058152f,
             "music", 0.1f);   // soft background music; it skips the compressor, so it stays at this level
 
     /** Per-sound adjustments in dB on top of the category mix. */
@@ -105,6 +105,7 @@ public final class ClarityConfig {
     private static volatile boolean masterBus = true;
     private static volatile boolean musicSkipsCompressor = true;
     private static volatile boolean uiSkipsCompressor = true;
+    private static volatile boolean logSounds;
     private static volatile boolean showMeter = true;
     private static volatile boolean sliderResetDone;
     private static volatile Compressor compressor = DEFAULT_COMPRESSOR;
@@ -155,6 +156,11 @@ public final class ClarityConfig {
             case UI -> uiSkipsCompressor;
             default -> false;
         };
+    }
+
+    /** Dev aid: log every sound that plays (ID, category, whether it skipped the chain). */
+    public static boolean logSounds() {
+        return logSounds;
     }
 
     public static boolean showMeter() {
@@ -300,6 +306,7 @@ public final class ClarityConfig {
         masterBus = bool(o, "master_bus", true);
         musicSkipsCompressor = bool(o, "music_skips_compressor", true);
         uiSkipsCompressor = bool(o, "ui_skips_compressor", true);
+        logSounds = bool(o, "log_sounds", false);
         showMeter = bool(o, "show_meter", true);
         sliderResetDone = bool(o, "slider_reset_done", false);
 
@@ -375,6 +382,7 @@ public final class ClarityConfig {
         o.addProperty("master_bus", masterBus);
         o.addProperty("music_skips_compressor", musicSkipsCompressor);
         o.addProperty("ui_skips_compressor", uiSkipsCompressor);
+        o.addProperty("log_sounds", logSounds);
         o.addProperty("show_meter", showMeter);
         o.addProperty("slider_reset_done", sliderResetDone);
 

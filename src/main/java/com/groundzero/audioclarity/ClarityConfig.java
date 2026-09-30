@@ -95,7 +95,9 @@ public final class ClarityConfig {
             "minecraft:entity.tnt.primed", 2.5f,
             "minecraft:entity.firework_rocket.*", -8.0f,
             "player|*.step", 10.0f,
-            "minecraft:entity.wither.*", -6.0f);   // the Wither only - wither skeletons are "wither_skeleton"
+            "minecraft:entity.wither.*", -6.0f,    // the Wither only - wither skeletons are "wither_skeleton"
+            "master|minecraft:ui.*", -8.0f,          // UI sounds servers play at full Master volume (Hypixel countdown)
+            "minecraft:block.note_block.*", -4.0f);
 
     public static final float MUTE_DB = -40f;
     private static final int MAX_BANDS = 10;
@@ -106,7 +108,10 @@ public final class ClarityConfig {
     private static volatile boolean musicSkipsCompressor = true;
     private static volatile boolean uiSkipsCompressor = true;
     /** Single sounds that skip the chain whatever their category (same patterns as sound_adjustments_db). */
-    static final List<String> DEFAULT_SKIP_SOUNDS = List.of("*_button.click_on", "*_button.click_off");
+    static final List<String> DEFAULT_SKIP_SOUNDS = List.of(
+            "*_button.click_on", "*_button.click_off",   // menu "ticks" (mcpvp: cherry button in Blocks)
+            "minecraft:ui.*",                           // UI sounds servers play in other categories (Hypixel countdown: Master)
+            "minecraft:block.note_block.*");            // note block ticks (Hypixel countdown hat / start pling)
     private static volatile List<String> skipSounds = DEFAULT_SKIP_SOUNDS;
     private static volatile boolean logSounds;
     private static volatile boolean showMeter = true;

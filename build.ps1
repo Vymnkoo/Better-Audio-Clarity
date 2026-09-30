@@ -23,6 +23,8 @@ New-Item -ItemType Directory $classes | Out-Null
 
 $clientJar = "$Meta\versions\$McVersion\$McVersion.jar"
 $profile = "$Meta\versions\$McVersion-$Loader\$McVersion-$Loader.json"
+# Snapshots often only have the Fabric profile's copy of the client jar.
+if (-not (Test-Path $clientJar)) { $clientJar = "$Meta\versions\$McVersion-$Loader\$McVersion-$Loader.jar" }
 foreach ($f in $clientJar, $profile) {
     if (-not (Test-Path $f)) { throw "$f not found - launch a Fabric $McVersion instance once" }
 }
@@ -30,9 +32,10 @@ foreach ($f in $clientJar, $profile) {
 # Every non-native library of the Fabric profile, as a path in the launcher's library cache.
 $libs = (Get-Content $profile -Raw | ConvertFrom-Json).libraries | ForEach-Object {
     $parts = $_.name -split ':'
-    if ($parts.Count -ne 3) { return }   # natives have a classifier
-    $group, $artifact, $version = $parts
-    $jar = "$Meta\libraries\$($group -replace '\.', '\')\$artifact\$version\$artifact-$version.jar"
+    if ($parts.Count -lt 3 -or ($parts.Count -gt 3 -and $parts[3] -like 'natives*')) { return }
+    $group, $artifact, $version = $parts[0..2]
+    $suffix = if ($parts.Count -gt 3) { "-$($parts[3])" } else { '' }   # 26.2's core LWJGL is lwjgl-3.4.1-unsafe.jar
+    $jar = "$Meta\libraries\$($group -replace '\.', '\')\$artifact\$version\$artifact-$version$suffix.jar"
     if (Test-Path $jar) { $jar }
 }
 if (-not ($libs | Where-Object { $_ -match 'fabric-loader' })) { throw "Fabric Loader jar not found in $Meta\libraries" }

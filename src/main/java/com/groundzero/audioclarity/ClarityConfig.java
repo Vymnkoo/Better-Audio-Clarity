@@ -59,7 +59,7 @@ public final class ClarityConfig {
 
     /** Tuned by ear by Vymnkoo, 2026-09-30: gentler and more transparent than the first Emberwild tuning. */
     public static final Compressor DEFAULT_COMPRESSOR = new Compressor(true, -30.0f, 2.0060976f, 49.729725f, 247.50362f,
-            11.323944f, 5.4084506f, 3.5f, true, Latency.LOW, 10f);
+            11.323944f, 5.4084506f, 5.5f, true, Latency.LOW, 10f);
 
     /**
      * Against Minecraft's dark, muffled tone: clear sub rumble, take a little mud out of the
@@ -199,6 +199,49 @@ public final class ClarityConfig {
     /** A new object whenever the settings change, so the EQ can tell when to recompute. */
     public static Eq eq() {
         return eq;
+    }
+
+    public static boolean musicSkipsCompressorSetting() {
+        return musicSkipsCompressor;
+    }
+
+    public static boolean uiSkipsCompressorSetting() {
+        return uiSkipsCompressor;
+    }
+
+    // ---- changes from the settings screen (Mod Menu): heard at once, written by saveNow()
+
+    public static synchronized void setOutputDb(float db) {
+        Compressor c = compressor;
+        compressor = new Compressor(c.enabled(), c.thresholdDb(), c.ratio(), c.attackMs(), c.releaseMs(), c.kneeDb(),
+                c.makeupDb(), clamp(db, -24f, 12f), c.limiter(), c.latency(), c.lookaheadMs());
+    }
+
+    public static synchronized void setCompressorEnabled(boolean on) {
+        Compressor c = compressor;
+        compressor = new Compressor(on, c.thresholdDb(), c.ratio(), c.attackMs(), c.releaseMs(), c.kneeDb(),
+                c.makeupDb(), c.outputDb(), c.limiter(), c.latency(), c.lookaheadMs());
+    }
+
+    public static synchronized void setEqEnabled(boolean on) {
+        eq = new Eq(on, eq.bands());
+    }
+
+    public static void setMusicSkipsCompressor(boolean on) {
+        musicSkipsCompressor = on;
+    }
+
+    public static void setUiSkipsCompressor(boolean on) {
+        uiSkipsCompressor = on;
+    }
+
+    public static void setShowMeter(boolean on) {
+        showMeter = on;
+    }
+
+    /** Writes the current settings to the file. */
+    public static synchronized void saveNow() {
+        save();
     }
 
     /** A category's level at 100% on its slider. */

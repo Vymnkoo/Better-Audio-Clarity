@@ -37,7 +37,10 @@ $libs = (Get-Content $profile -Raw | ConvertFrom-Json).libraries | ForEach-Objec
 }
 if (-not ($libs | Where-Object { $_ -match 'fabric-loader' })) { throw "Fabric Loader jar not found in $Meta\libraries" }
 
-$cp = @($clientJar) + $libs
+# Mod Menu's API (compile only - the integration class is only loaded when Mod Menu is installed).
+$modMenu = Get-ChildItem -Path (Join-Path (Split-Path $Meta) 'profiles') -Recurse -Depth 2 -Filter 'modmenu-*.jar' -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+if (-not $modMenu) { throw "Mod Menu jar not found in any Modrinth App instance" }
+$cp = @($clientJar) + $libs + @($modMenu.FullName)
 $sources = (Get-ChildItem (Join-Path $root 'src\main\java') -Recurse -Filter '*.java').FullName
 
 # An @argfile: the classpath is long and has spaces, which Windows PowerShell 5.1 mangles.

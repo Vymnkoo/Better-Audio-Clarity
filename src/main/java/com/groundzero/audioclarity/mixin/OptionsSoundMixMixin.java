@@ -39,7 +39,14 @@ public abstract class OptionsSoundMixMixin {
         } else {
             volume = cir.getReturnValueF();
         }
-        cir.setReturnValue(volume * ClarityConfig.mix(source.getName()));
+        float result = volume * ClarityConfig.mix(source.getName());
+        // Music skips the chain, so the compressor's Output gain would never reach it and raising
+        // Output would bury the music under the game. Give music the same Output gain, so Output
+        // is the final volume for everything and the game/music balance stays as tuned.
+        if (MasterBus.active() != null && audioclarity$musicBypasses(source)) {
+            result *= (float) Math.pow(10.0, ClarityConfig.compressor().outputDb() / 20.0);
+        }
+        cir.setReturnValue(result);
     }
 
     @Unique

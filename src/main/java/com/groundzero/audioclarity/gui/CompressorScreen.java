@@ -177,7 +177,7 @@ public class CompressorScreen extends Screen {
                 width / 2, y + 62, 0xFF808080);
     }
 
-    private static final float TARGET_LUFS = -14f;
+    private static final float TARGET_LUFS = -18f;   // natural, comfortable level for game audio
 
     private static String lufsText(float v) {
         return v < -69f ? "--" : String.format(Locale.ROOT, "%.1f", v);

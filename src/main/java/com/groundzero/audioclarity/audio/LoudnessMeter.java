@@ -1,8 +1,8 @@
 package com.groundzero.audioclarity.audio;
 
 /**
- * A loudness meter to ITU-R BS.1770-4 / EBU R128, the standard behind "LUFS" targets such as
- * YouTube's and Spotify's -14 LUFS. Measures the finished stereo mix:
+ * A loudness meter to ITU-R BS.1770-4 / EBU R128, the standard behind "LUFS" targets (streaming
+ * uses -14 LUFS; the tuning screen aims the game itself at a more natural -18). Measures the finished stereo mix:
  * <ul>
  *   <li>K-weighting (the standard's two filters: a high shelf for how the head shapes sound, and
  *       a high-pass that ignores deep rumble), coefficients worked out for any sample rate;</li>

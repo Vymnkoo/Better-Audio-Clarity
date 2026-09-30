@@ -103,6 +103,7 @@ public final class ClarityConfig {
     private static volatile boolean masterBus = true;
     private static volatile boolean musicSkipsCompressor = true;
     private static volatile boolean showMeter = true;
+    private static volatile boolean sliderResetDone;
     private static volatile Compressor compressor = DEFAULT_COMPRESSOR;
     private static volatile Eq eq = DEFAULT_EQ;
     private static volatile Map<String, Float> mix = DEFAULT_MIX;
@@ -128,6 +129,16 @@ public final class ClarityConfig {
 
     public static boolean musicSkipsCompressor() {
         return musicSkipsCompressor;
+    }
+
+    /** False until the one-time reset of the category sliders has run (see MinecraftTickMixin). */
+    public static boolean sliderResetDone() {
+        return sliderResetDone;
+    }
+
+    public static synchronized void markSliderResetDone() {
+        sliderResetDone = true;
+        save();
     }
 
     public static boolean showMeter() {
@@ -273,6 +284,7 @@ public final class ClarityConfig {
         masterBus = bool(o, "master_bus", true);
         musicSkipsCompressor = bool(o, "music_skips_compressor", true);
         showMeter = bool(o, "show_meter", true);
+        sliderResetDone = bool(o, "slider_reset_done", false);
 
         JsonObject c = section(o, "compressor");
         Compressor d = DEFAULT_COMPRESSOR;
@@ -346,6 +358,7 @@ public final class ClarityConfig {
         o.addProperty("master_bus", masterBus);
         o.addProperty("music_skips_compressor", musicSkipsCompressor);
         o.addProperty("show_meter", showMeter);
+        o.addProperty("slider_reset_done", sliderResetDone);
 
         JsonObject q = new JsonObject();
         q.addProperty("_help", "Global EQ on everything except music, after the compressor and before the limiter. Band types: "

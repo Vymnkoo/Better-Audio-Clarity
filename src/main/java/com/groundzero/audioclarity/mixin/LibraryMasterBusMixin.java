@@ -49,6 +49,17 @@ public abstract class LibraryMasterBusMixin {
         return LibraryInvoker.audioclarity$queryDeviceName(audioclarity$bus != null ? audioclarity$bus.realDevice() : device);
     }
 
+    /**
+     * Vanilla keeps only up to 8 streaming channels (the rest are for fully loaded sounds). Music
+     * and UI sounds stream while they skip the chain, and quick UI sounds - a sword tick spammed
+     * in PvP - could run out; 16 is plenty and costs the loaded pool (~250) nothing noticeable.
+     */
+    @Redirect(method = "init", at = @At(value = "INVOKE", target = "Lnet/minecraft/util/Mth;clamp(III)I", ordinal = 0))
+    private int audioclarity$moreStreamingChannels(int value, int min, int max) {
+        int vanilla = net.minecraft.util.Mth.clamp(value, min, max);
+        return audioclarity$bus != null ? Math.max(vanilla, 16) : vanilla;
+    }
+
     @ModifyArg(method = "init", index = 1, at = @At(value = "INVOKE",
             target = "Lorg/lwjgl/openal/ALC10;alcCreateContext(JLjava/nio/IntBuffer;)J"))
     private IntBuffer audioclarity$loopbackFormat(IntBuffer attributes) {

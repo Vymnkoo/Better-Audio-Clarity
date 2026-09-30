@@ -104,6 +104,7 @@ public final class ClarityConfig {
 
     private static volatile boolean masterBus = true;
     private static volatile boolean musicSkipsCompressor = true;
+    private static volatile boolean uiSkipsCompressor = true;
     private static volatile boolean showMeter = true;
     private static volatile boolean sliderResetDone;
     private static volatile Compressor compressor = DEFAULT_COMPRESSOR;
@@ -141,6 +142,19 @@ public final class ClarityConfig {
     public static synchronized void markSliderResetDone() {
         sliderResetDone = true;
         save();
+    }
+
+    /**
+     * Music and UI sounds can go straight to the sound card, around the whole chain: music so a
+     * loud moment never pumps it down, UI (clicks, and sounds servers play as UI like the sword
+     * tick) so it never makes the compressor pump the game.
+     */
+    public static boolean skipsChain(net.minecraft.sounds.SoundSource source) {
+        return switch (source) {
+            case MUSIC -> musicSkipsCompressor;
+            case UI -> uiSkipsCompressor;
+            default -> false;
+        };
     }
 
     public static boolean showMeter() {
@@ -285,6 +299,7 @@ public final class ClarityConfig {
 
         masterBus = bool(o, "master_bus", true);
         musicSkipsCompressor = bool(o, "music_skips_compressor", true);
+        uiSkipsCompressor = bool(o, "ui_skips_compressor", true);
         showMeter = bool(o, "show_meter", true);
         sliderResetDone = bool(o, "slider_reset_done", false);
 
@@ -359,6 +374,7 @@ public final class ClarityConfig {
                 + "use it if the game has no sound or crackles.");
         o.addProperty("master_bus", masterBus);
         o.addProperty("music_skips_compressor", musicSkipsCompressor);
+        o.addProperty("ui_skips_compressor", uiSkipsCompressor);
         o.addProperty("show_meter", showMeter);
         o.addProperty("slider_reset_done", sliderResetDone);
 

@@ -4,6 +4,7 @@ import com.groundzero.audioclarity.ClarityConfig;
 import com.groundzero.audioclarity.audio.MasterBus;
 import com.groundzero.audioclarity.audio.MusicRoute;
 import com.mojang.blaze3d.audio.Library;
+import net.minecraft.client.resources.sounds.Sound;
 import net.minecraft.client.resources.sounds.SoundInstance;
 import net.minecraft.client.sounds.ChannelAccess;
 import net.minecraft.client.sounds.SoundEngine;
@@ -52,14 +53,29 @@ public abstract class SoundEngineMixerMixin {
     }
 
     /**
-     * Streamed music gets its channel on the real sound card instead of the loopback mix, so it
-     * skips the master compressor (see {@link MusicRoute}).
+     * Sounds that skip the chain (music, and UI) must be streamed: a streamed sound decodes into
+     * its own buffers, which can live on the real sound card, while fully loaded sounds share
+     * buffers that belong to the loopback mix. Music is streamed anyway; UI sounds are switched
+     * to streaming here (both calls in play() - the stream/load choice and the channel pool).
+     */
+    @Redirect(method = "play", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/resources/sounds/Sound;shouldStream()Z"))
+    private boolean audioclarity$streamIfSkippingChain(Sound resolved) {
+        SoundInstance sound = audioclarity$playing;
+        if (sound != null && MasterBus.active() != null && ClarityConfig.skipsChain(sound.getSource())) {
+            return true;
+        }
+        return resolved.shouldStream();
+    }
+
+    /**
+     * Streamed sounds that skip the chain get their channel on the real sound card instead of the
+     * loopback mix, so the master compressor never hears them (see {@link MusicRoute}).
      */
     @Redirect(method = "play", at = @At(value = "INVOKE",
             target = "Lnet/minecraft/client/sounds/ChannelAccess;createHandle(Lcom/mojang/blaze3d/audio/Library$Pool;)Ljava/util/concurrent/CompletableFuture;"))
-    private CompletableFuture<ChannelAccess.ChannelHandle> audioclarity$musicAroundCompressor(ChannelAccess access, Library.Pool pool) {
+    private CompletableFuture<ChannelAccess.ChannelHandle> audioclarity$aroundCompressor(ChannelAccess access, Library.Pool pool) {
         SoundInstance sound = audioclarity$playing;
-        if (sound != null && pool == Library.Pool.STREAMING && sound.getSource() == SoundSource.MUSIC && MasterBus.active() != null && ClarityConfig.musicSkipsCompressor()) {
+        if (sound != null && pool == Library.Pool.STREAMING && MasterBus.active() != null && ClarityConfig.skipsChain(sound.getSource())) {
             return MusicRoute.createOnSoundCard(((ChannelAccessAccessor) access).audioclarity$executor(), () -> access.createHandle(pool));
         }
         return access.createHandle(pool);

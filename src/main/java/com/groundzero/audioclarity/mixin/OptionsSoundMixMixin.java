@@ -31,26 +31,26 @@ public abstract class OptionsSoundMixMixin {
     @Inject(method = "getFinalSoundSourceVolume", at = @At("RETURN"), cancellable = true)
     private void audioclarity$applySoundMix(SoundSource source, CallbackInfoReturnable<Float> cir) {
         float volume;
-        // VOICE is the narrator, which speaks through the OS's text-to-speech, and MUSIC plays
-        // straight to the sound card (MusicRoute) - neither passes through the master bus, so
-        // both keep the Master slider the vanilla way.
-        if (MasterBus.active() != null && source != SoundSource.VOICE && !audioclarity$musicBypasses(source)) {
+        // VOICE is the narrator, which speaks through the OS's text-to-speech, and MUSIC and UI play
+        // straight to the sound card (MusicRoute) - none of them pass through the master bus, so
+        // they keep the Master slider the vanilla way.
+        if (MasterBus.active() != null && source != SoundSource.VOICE && !audioclarity$skipsChain(source)) {
             volume = source == SoundSource.MASTER ? 1f : getSoundSourceVolume(source);
         } else {
             volume = cir.getReturnValueF();
         }
         float result = volume * ClarityConfig.mix(source.getName());
-        // Music skips the chain, so the compressor's Output gain would never reach it and raising
-        // Output would bury the music under the game. Give music the same Output gain, so Output
-        // is the final volume for everything and the game/music balance stays as tuned.
-        if (MasterBus.active() != null && audioclarity$musicBypasses(source)) {
+        // Music and UI skip the chain, so the compressor's Output gain would never reach them and
+        // raising Output would bury them under the game. Give them the same Output gain, so Output
+        // is the final volume for everything and the balance stays as tuned.
+        if (MasterBus.active() != null && audioclarity$skipsChain(source)) {
             result *= (float) Math.pow(10.0, ClarityConfig.compressor().outputDb() / 20.0);
         }
         cir.setReturnValue(result);
     }
 
     @Unique
-    private static boolean audioclarity$musicBypasses(SoundSource source) {
-        return source == SoundSource.MUSIC && ClarityConfig.musicSkipsCompressor();
+    private static boolean audioclarity$skipsChain(SoundSource source) {
+        return ClarityConfig.skipsChain(source);
     }
 }

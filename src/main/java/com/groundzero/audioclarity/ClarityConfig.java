@@ -61,9 +61,12 @@ public final class ClarityConfig {
 
     public static final Set<String> BAND_TYPES = Set.of("highpass", "lowpass", "lowshelf", "highshelf", "peak");
 
-    /** Tuned by ear by Vymnkoo, 2026-09-30: gentler and more transparent than the first Emberwild tuning. */
-    public static final Compressor DEFAULT_COMPRESSOR = new Compressor(true, -30.0f, 2.0060976f, 49.729725f, 247.50362f,
-            11.323944f, 5.4084506f, 5.5f, true, Latency.LOW, 10f);
+    /**
+     * Tuned by ear by Vymnkoo, 2026-09-30 (1.2.0): a high threshold, so the compressor only
+     * catches the loud moments and everyday sound keeps its dynamics.
+     */
+    public static final Compressor DEFAULT_COMPRESSOR = new Compressor(true, -18.169014f, 2.0925527f, 49.729725f, 247.50362f,
+            12.0f, 3.0422535f, 5.5f, true, Latency.LOW, 10f);
 
     /**
      * Against Minecraft's dark, muffled tone: clear sub rumble, take a little mud out of the

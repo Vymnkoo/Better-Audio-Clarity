@@ -102,7 +102,9 @@ public abstract class SoundEngineMixerMixin {
         SoundInstance sound = audioclarity$playing;
         boolean around = sound != null && pool == Library.Pool.STREAMING && MasterBus.active() != null && audioclarity$skips(sound);
         if (sound != null && ClarityConfig.logSounds()) {
-            LOGGER.info("[sound] {} ({}) -> {}", sound.getIdentifier(), sound.getSource().getName(),
+            // vol = the volume the game asked for (code multipliers included), file = the variant picked.
+            LOGGER.info("[sound] {} ({}) vol={} file={} -> {}", sound.getIdentifier(), sound.getSource().getName(),
+                    String.format(java.util.Locale.ROOT, "%.3f", sound.getVolume()), sound.getSound().getLocation(),
                     around ? "sound card, around the compressor" : "through the compressor (" + pool + ")");
         }
         if (around) {

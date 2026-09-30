@@ -44,6 +44,7 @@ public abstract class MinecraftTickMixin {
         }
         ClarityConfig.poll();
         com.groundzero.audioclarity.audio.MusicDuck.tick((Minecraft) (Object) this);
+        com.groundzero.audioclarity.audio.OutputWatcher.tick((Minecraft) (Object) this);
     }
 
     /**

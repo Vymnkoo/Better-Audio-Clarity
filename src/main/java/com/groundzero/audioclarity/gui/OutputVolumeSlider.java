@@ -44,8 +44,8 @@ public class OutputVolumeSlider extends AbstractSliderButton {
     @Override
     protected void updateMessage() {
         float db = relativeDb();
-        setMessage(Component.literal(off() ? "Output: OFF"
-                : db == 0f ? "Output: 0.0 dB" : String.format(Locale.ROOT, "Output: %+.1f dB", db)));
+        setMessage(Component.literal(off() ? "Master Volume: OFF"
+                : db == 0f ? "Master Volume: 0.0 dB" : String.format(Locale.ROOT, "Master Volume: %+.1f dB", db)));
     }
 
     @Override

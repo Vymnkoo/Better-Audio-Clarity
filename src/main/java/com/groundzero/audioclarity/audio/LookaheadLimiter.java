@@ -13,7 +13,7 @@ package com.groundzero.audioclarity.audio;
  */
 public final class LookaheadLimiter {
 
-    public static final float CEILING = 0.966f;   // -0.3 dBFS
+    public static final float CEILING = 0.891f;   // -1.0 dBFS: headroom for peaks between samples and for AAC/MP3 encoding (recordings)
 
     private final int maxDelay;
     private final float[] delayL, delayR;   // the held-back mix

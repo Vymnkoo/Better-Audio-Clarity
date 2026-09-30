@@ -62,8 +62,8 @@ public final class ClarityConfig {
     public static final Set<String> BAND_TYPES = Set.of("highpass", "lowpass", "lowshelf", "highshelf", "peak");
 
     /** Tuned by ear by Vymnkoo, 2026-09-30: gentler and more transparent than the first Emberwild tuning. */
-    public static final Compressor DEFAULT_COMPRESSOR = new Compressor(true, -27.253521f, 1.5906258f, 49.729725f, 247.50362f,
-            11.323944f, 4.9859157f, -0.04225352f, true, Latency.LOW, 10f);
+    public static final Compressor DEFAULT_COMPRESSOR = new Compressor(true, -28.521128f, 1.5906258f, 49.729725f, 247.50362f,
+            11.323944f, 5.4084506f, 2.9f, true, Latency.LOW, 10f);
 
     /**
      * Against Minecraft's dark, muffled tone: clear sub rumble, take a little mud out of the
@@ -94,7 +94,7 @@ public final class ClarityConfig {
             "minecraft:entity.enderman.ambient", 7.5f,
             "minecraft:entity.tnt.primed", 2.5f,
             "minecraft:entity.firework_rocket.*", -8.0f,
-            "player|*.step", 6.0f,
+            "player|*.step", 10.0f,
             "minecraft:entity.wither.*", -6.0f);   // the Wither only - wither skeletons are "wither_skeleton"
 
     public static final float MUTE_DB = -40f;

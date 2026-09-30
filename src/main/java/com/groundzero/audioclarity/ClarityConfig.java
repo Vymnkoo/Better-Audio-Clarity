@@ -91,7 +91,8 @@ public final class ClarityConfig {
     static final Map<String, Float> DEFAULT_SOUNDS = ordered(
             "minecraft:block.grass.place", 6.0f,
             "minecraft:entity.enderman.ambient", 7.5f,
-            "minecraft:entity.tnt.primed", 2.5f);
+            "minecraft:entity.tnt.primed", 2.5f,
+            "minecraft:entity.firework_rocket.*", -8.0f);
 
     public static final float MUTE_DB = -40f;
     private static final int MAX_BANDS = 10;

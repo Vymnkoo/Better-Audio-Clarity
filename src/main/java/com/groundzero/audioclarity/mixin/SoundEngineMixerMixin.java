@@ -63,10 +63,33 @@ public abstract class SoundEngineMixerMixin {
     @Redirect(method = "play", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/resources/sounds/Sound;shouldStream()Z"))
     private boolean audioclarity$streamIfSkippingChain(Sound resolved) {
         SoundInstance sound = audioclarity$playing;
-        if (sound != null && MasterBus.active() != null && ClarityConfig.skipsChain(sound.getSource())) {
+        if (sound != null && MasterBus.active() != null && audioclarity$skips(sound)) {
             return true;
         }
         return resolved.shouldStream();
+    }
+
+    /** Music, UI, and single sounds listed in skip_compressor_sounds go around the chain. */
+    @Unique
+    private static boolean audioclarity$skips(SoundInstance sound) {
+        return ClarityConfig.skipsChain(sound.getSource())
+                || ClarityConfig.skipsChainAsSound(sound.getIdentifier().toString(), sound.getSource().getName());
+    }
+
+    /**
+     * A single sound that skips the chain although its category goes through it (a server's
+     * button-click "tick" in Blocks) misses what the chain gives the rest of its category -
+     * make-up, output and the Master slider - so it gets them here and keeps its usual loudness.
+     */
+    @Unique
+    private static float audioclarity$aroundGain(SoundInstance sound) {
+        if (MasterBus.active() == null || ClarityConfig.skipsChain(sound.getSource())
+                || !ClarityConfig.skipsChainAsSound(sound.getIdentifier().toString(), sound.getSource().getName())) {
+            return 1f;
+        }
+        ClarityConfig.Compressor c = ClarityConfig.compressor();
+        float db = (c.enabled() ? c.makeupDb() : 0f) + c.outputDb();
+        return (float) Math.pow(10.0, db / 20.0) * MasterBus.masterVolume;
     }
 
     /**
@@ -77,7 +100,7 @@ public abstract class SoundEngineMixerMixin {
             target = "Lnet/minecraft/client/sounds/ChannelAccess;createHandle(Lcom/mojang/blaze3d/audio/Library$Pool;)Ljava/util/concurrent/CompletableFuture;"))
     private CompletableFuture<ChannelAccess.ChannelHandle> audioclarity$aroundCompressor(ChannelAccess access, Library.Pool pool) {
         SoundInstance sound = audioclarity$playing;
-        boolean around = sound != null && pool == Library.Pool.STREAMING && MasterBus.active() != null && ClarityConfig.skipsChain(sound.getSource());
+        boolean around = sound != null && pool == Library.Pool.STREAMING && MasterBus.active() != null && audioclarity$skips(sound);
         if (sound != null && ClarityConfig.logSounds()) {
             LOGGER.info("[sound] {} ({}) -> {}", sound.getIdentifier(), sound.getSource().getName(),
                     around ? "sound card, around the compressor" : "through the compressor (" + pool + ")");
@@ -93,7 +116,8 @@ public abstract class SoundEngineMixerMixin {
         SoundInstance sound = audioclarity$starting;
         if (sound != null) {
             audioclarity$starting = null; // once per play()
-            float g = ClarityConfig.soundGain(sound.getIdentifier().toString(), sound.getSource().getName());
+            float g = ClarityConfig.soundGain(sound.getIdentifier().toString(), sound.getSource().getName())
+                    * audioclarity$aroundGain(sound);
             if (g != 1f) {
                 cir.setReturnValue(cir.getReturnValueF() * g);
             }
@@ -103,7 +127,8 @@ public abstract class SoundEngineMixerMixin {
     @Inject(method = "calculateVolume(Lnet/minecraft/client/resources/sounds/SoundInstance;)F",
             at = @At("RETURN"), cancellable = true)
     private void audioclarity$tickGain(SoundInstance sound, CallbackInfoReturnable<Float> cir) {
-        float g = ClarityConfig.soundGain(sound.getIdentifier().toString(), sound.getSource().getName());
+        float g = ClarityConfig.soundGain(sound.getIdentifier().toString(), sound.getSource().getName())
+                * audioclarity$aroundGain(sound);
         if (g != 1f) {
             cir.setReturnValue(cir.getReturnValueF() * g);
         }

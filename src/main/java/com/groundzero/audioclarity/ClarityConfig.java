@@ -105,6 +105,9 @@ public final class ClarityConfig {
     private static volatile boolean masterBus = true;
     private static volatile boolean musicSkipsCompressor = true;
     private static volatile boolean uiSkipsCompressor = true;
+    /** Single sounds that skip the chain whatever their category (same patterns as sound_adjustments_db). */
+    static final List<String> DEFAULT_SKIP_SOUNDS = List.of("*_button.click_on", "*_button.click_off");
+    private static volatile List<String> skipSounds = DEFAULT_SKIP_SOUNDS;
     private static volatile boolean logSounds;
     private static volatile boolean showMeter = true;
     private static volatile boolean sliderResetDone;
@@ -147,8 +150,8 @@ public final class ClarityConfig {
 
     /**
      * Music and UI sounds can go straight to the sound card, around the whole chain: music so a
-     * loud moment never pumps it down, UI (clicks, and sounds servers play as UI like the sword
-     * tick) so it never makes the compressor pump the game.
+     * loud moment never pumps it down, UI (menu clicks) so it never makes the compressor pump the
+     * game.
      */
     public static boolean skipsChain(net.minecraft.sounds.SoundSource source) {
         return switch (source) {
@@ -156,6 +159,27 @@ public final class ClarityConfig {
             case UI -> uiSkipsCompressor;
             default -> false;
         };
+    }
+
+    /**
+     * Single sounds that skip the chain although their category doesn't - e.g. servers that use a
+     * button click as a menu "tick" (mcpvp plays block.cherry_wood_button.click_on in Blocks),
+     * which would otherwise make the compressor pump.
+     */
+    public static boolean skipsChainAsSound(String id, String category) {
+        for (String rule : skipSounds) {
+            int bar = rule.indexOf('|');
+            if (bar >= 0) {
+                if (!rule.substring(0, bar).equals(category)) {
+                    continue;
+                }
+                rule = rule.substring(bar + 1);
+            }
+            if (matches(rule, id)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /** Dev aid: log every sound that plays (ID, category, whether it skipped the chain). */
@@ -236,6 +260,22 @@ public final class ClarityConfig {
         return g;
     }
 
+    private static List<String> stringList(JsonObject o, String key, List<String> def) {
+        if (!o.has(key) || !o.get(key).isJsonArray()) {
+            missing = true;
+            return def;
+        }
+        List<String> out = new ArrayList<>();
+        for (JsonElement e : o.getAsJsonArray(key)) {
+            try {
+                out.add(e.getAsString());
+            } catch (Exception ex) {
+                LOGGER.warn("Ignoring a non-text entry in {}", key);
+            }
+        }
+        return List.copyOf(out);
+    }
+
     private static boolean matches(String pattern, String id) {
         if (pattern.endsWith("*")) {
             return id.startsWith(pattern.substring(0, pattern.length() - 1));
@@ -306,6 +346,7 @@ public final class ClarityConfig {
         masterBus = bool(o, "master_bus", true);
         musicSkipsCompressor = bool(o, "music_skips_compressor", true);
         uiSkipsCompressor = bool(o, "ui_skips_compressor", true);
+        skipSounds = stringList(o, "skip_compressor_sounds", DEFAULT_SKIP_SOUNDS);
         logSounds = bool(o, "log_sounds", false);
         showMeter = bool(o, "show_meter", true);
         sliderResetDone = bool(o, "slider_reset_done", false);
@@ -382,6 +423,9 @@ public final class ClarityConfig {
         o.addProperty("master_bus", masterBus);
         o.addProperty("music_skips_compressor", musicSkipsCompressor);
         o.addProperty("ui_skips_compressor", uiSkipsCompressor);
+        JsonArray skip = new JsonArray();
+        skipSounds.forEach(skip::add);
+        o.add("skip_compressor_sounds", skip);
         o.addProperty("log_sounds", logSounds);
         o.addProperty("show_meter", showMeter);
         o.addProperty("slider_reset_done", sliderResetDone);

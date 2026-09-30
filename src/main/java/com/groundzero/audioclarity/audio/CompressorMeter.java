@@ -6,19 +6,25 @@ import net.minecraft.client.gui.GuiGraphicsExtractor;
 import java.util.Locale;
 
 /**
- * A small read-only meter for the master compressor, drawn in the top-right corner of Music &
- * Sound: input level, gain reduction and output level. Look only - nothing to adjust.
+ * A read-only meter for the master compressor at the bottom of Music &amp; Sound, above the Done
+ * button: input level, gain reduction and output level, full width like a mixing desk. Look only -
+ * nothing to adjust.
  */
 public final class CompressorMeter {
 
-    private static final int BAR_W = 90;
+    /** Room the meter needs above the Done button (MusicSoundFooterMixin makes the footer this much taller). */
+    public static final int HEIGHT = 42;
+    private static final int WIDTH = 310;
+    private static final int BAR_H = 10;
+    private static final int ROW = 14;
 
     private static float shownIn = -60f, shownOut = -60f, shownGr;
     private static long lastFrame = System.nanoTime();
 
     private CompressorMeter() {}
 
-    public static void draw(GuiGraphicsExtractor g, Font font, int screenWidth) {
+    /** @param top y of the meter's first bar */
+    public static void draw(GuiGraphicsExtractor g, Font font, int screenWidth, int top) {
         MasterBus bus = MasterBus.active();
         if (bus == null) {
             return;
@@ -32,25 +38,28 @@ public final class CompressorMeter {
         shownOut = Math.max(c.meterOutDb, shownOut - 20f * dt);
         shownGr = Math.min(c.meterGrDb, shownGr + 20f * dt);
 
-        int x = screenWidth - BAR_W - 70;
-        int y = 6;
-        bar(g, font, x, y, "IN", shownIn, -60f, 0f, 0xFF4CAF50, false);
-        bar(g, font, x, y + 8, "GR", shownGr, -24f, 0f, 0xFFE53935, true);
-        bar(g, font, x, y + 16, "OUT", shownOut, -60f, 0f, 0xFF42A5F5, false);
+        int x = (screenWidth - WIDTH) / 2;
+        bar(g, font, x, top, "IN", shownIn, -60f, 0f, 0xFF4CAF50, false);
+        bar(g, font, x, top + ROW, "GR", shownGr, -24f, 0f, 0xFFE53935, true);
+        bar(g, font, x, top + ROW * 2, "OUT", shownOut, -60f, 0f, 0xFF42A5F5, false);
     }
 
+    /** A horizontal level bar; gain reduction grows from the right like a GR meter on a desk. */
     private static void bar(GuiGraphicsExtractor g, Font font, int x, int y, String label, float db, float min, float max,
                             int color, boolean fromRight) {
-        int bx = x + 22;
-        g.text(font, label, x, y - 1, 0xFFB0B0B0);
-        g.fill(bx, y, bx + BAR_W, y + 6, 0xFF202020);
+        int labelW = 24;
+        int bx = x + labelW;
+        int bw = WIDTH - labelW - 52;
+        g.text(font, label, x, y + 1, 0xFFE0E0E0);
+        g.fill(bx, y, bx + bw, y + BAR_H, 0xFF202020);
         float t = Math.max(0f, Math.min(1f, (db - min) / (max - min)));
-        int len = fromRight ? (int) ((1f - t) * BAR_W) : (int) (t * BAR_W);
+        int len = fromRight ? (int) ((1f - t) * bw) : (int) (t * bw);
         if (fromRight) {
-            g.fill(bx + BAR_W - len, y, bx + BAR_W, y + 6, color);
+            g.fill(bx + bw - len, y, bx + bw, y + BAR_H, color);
         } else {
-            g.fill(bx, y, bx + len, y + 6, color);
+            g.fill(bx, y, bx + len, y + BAR_H, color);
         }
-        g.text(font, db <= -119f ? "-inf" : String.format(Locale.ROOT, "%.1f", db), bx + BAR_W + 5, y - 1, 0xFFB0B0B0);
+        String text = db <= -119f ? "-inf" : String.format(Locale.ROOT, "%.1f dB", db);
+        g.text(font, text, bx + bw + 6, y + 1, 0xFFE0E0E0);
     }
 }

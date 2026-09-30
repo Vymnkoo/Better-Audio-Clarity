@@ -13,6 +13,7 @@
     "ChannelAccessAccessor",
     "SoundPhysicsSkipMusicMixin",
     "ScreenMeterMixin",
+    "MusicSoundFooterMixin",
     "MinecraftTickMixin",
     "SoundOptionsCompressorButtonMixin"
   ],

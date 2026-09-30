@@ -4,9 +4,10 @@ import com.groundzero.audioclarity.ClarityConfig;
 import org.lwjgl.system.MemoryUtil;
 
 /**
- * A stereo-linked, feed-forward compressor with a soft knee, followed by a brick-wall safety
- * limiter - the classic master-bus chain - with the global {@link Equalizer} in between. Works in place on interleaved 32-bit float stereo
- * straight in native memory.
+ * A stereo-linked, feed-forward compressor with a soft knee, followed by a safety limiter with
+ * lookahead ({@link LookaheadLimiter}) - the classic master-bus chain - with the global
+ * {@link Equalizer} in between. Works in place on interleaved 32-bit float stereo straight in
+ * native memory.
  *
  * <p>Runs on OpenAL's mixing thread for every block the speakers need, so it must never
  * allocate or block: a GC pause here is an audible dropout.
@@ -15,14 +16,15 @@ public final class Compressor {
 
     private static final float DB_PER_NEPER = 8.685889638f;   // 20 / ln(10)
     private static final float NEPER_PER_DB = 0.11512925465f; // ln(10) / 20
-    private static final float LIMIT_CEILING = 0.966f;        // -0.3 dBFS
     private static final float SILENCE_DB = -120f;
+    public static final float MAX_LOOKAHEAD_MS = 20f;
 
     private final float sampleRate;
     private final Equalizer eq;
-    private float grDb;          // current gain reduction, <= 0
-    private float limiterGain = 1f;
-    private float masterGain = 1f; // last block's master volume, ramped from to avoid zipper noise
+    private final LookaheadLimiter limiter;
+    private float grDb;             // current gain reduction, <= 0
+    private float masterGain = 1f;  // last block's master volume, ramped from to avoid zipper noise
+    private float staticGain = 1f;  // last block's make-up x output, ramped the same way
 
     // Meters for the Music & Sound screen: loudest input/output and deepest reduction of the last block.
     public volatile float meterInDb = SILENCE_DB;
@@ -32,6 +34,7 @@ public final class Compressor {
     public Compressor(float sampleRate) {
         this.sampleRate = sampleRate;
         this.eq = new Equalizer(sampleRate);
+        this.limiter = new LookaheadLimiter((int) Math.ceil(MAX_LOOKAHEAD_MS * 0.001 * sampleRate));
     }
 
     /**
@@ -50,10 +53,16 @@ public final class Compressor {
         float halfKnee = knee * 0.5f;
         float attack = coefficient(p.attackMs());
         float release = coefficient(p.releaseMs());
-        float makeupDb = on ? p.makeupDb() : 0f;
-        float output = dbToGain(p.outputDb());
-        boolean limiter = p.limiter();
+        // Make-up and output ramp across the block too, so moving them never clicks.
+        float staticTarget = dbToGain(on ? p.makeupDb() : 0f) * dbToGain(p.outputDb());
+        float staticStart = staticGain;
+        float staticStep = frames > 0 ? (staticTarget - staticStart) / frames : 0f;
+        staticGain = staticTarget;
+        boolean limit = p.limiter();
         float limiterRelease = coefficient(80f);
+        if (limit) {
+            limiter.setDelay(Math.round(p.lookaheadMs() * 0.001f * sampleRate));
+        }
         boolean eqOn = eq.begin();
 
         float peakIn = 0f, peakOut = 0f, deepestGr = 0f;
@@ -66,7 +75,7 @@ public final class Compressor {
                 peakIn = peak;
             }
 
-            float gainDb = makeupDb;
+            float gainDb = 0f;
             if (on) {
                 float levelDb = peak > 1e-6f ? (float) Math.log(peak) * DB_PER_NEPER : SILENCE_DB;
                 float over = levelDb - threshold;
@@ -85,9 +94,9 @@ public final class Compressor {
                 if (grDb < deepestGr) {
                     deepestGr = grDb;
                 }
-                gainDb += grDb;
+                gainDb = grDb;
             }
-            float g = (float) Math.exp(gainDb * NEPER_PER_DB) * output;
+            float g = (float) Math.exp(gainDb * NEPER_PER_DB) * (staticStart + staticStep * (i + 1));
             l *= g;
             r *= g;
 
@@ -98,12 +107,10 @@ public final class Compressor {
                 r = (float) eq.outR;
             }
 
-            if (limiter) {
-                float p2 = Math.max(Math.abs(l), Math.abs(r));
-                float need = p2 > LIMIT_CEILING ? LIMIT_CEILING / p2 : 1f;
-                limiterGain = need < limiterGain ? need : need + limiterRelease * (limiterGain - need);
-                l *= limiterGain;
-                r *= limiterGain;
+            if (limit) {
+                limiter.process(l, r, limiterRelease);
+                l = limiter.outL;
+                r = limiter.outR;
             }
             // Never hand the device anything past full scale.
             l = Math.max(-1f, Math.min(1f, l));

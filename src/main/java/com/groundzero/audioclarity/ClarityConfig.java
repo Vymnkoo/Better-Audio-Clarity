@@ -51,7 +51,8 @@ public final class ClarityConfig {
     }
 
     public record Compressor(boolean enabled, float thresholdDb, float ratio, float attackMs, float releaseMs,
-                             float kneeDb, float makeupDb, float outputDb, boolean limiter, Latency latency) {}
+                             float kneeDb, float makeupDb, float outputDb, boolean limiter, Latency latency,
+                             float lookaheadMs) {}
 
     /** One EQ band. gainDb is ignored by highpass / lowpass. */
     public record Band(String type, float freqHz, float gainDb, float q) {}
@@ -62,7 +63,7 @@ public final class ClarityConfig {
 
     /** Tuned by ear by Vymnkoo, 2026-09-30: gentler and more transparent than the first Emberwild tuning. */
     public static final Compressor DEFAULT_COMPRESSOR = new Compressor(true, -20.915493f, 2.0060976f, 49.729725f, 197.8586f,
-            10.056338f, 7.6056337f, -0.04225352f, true, Latency.NORMAL);
+            10.056338f, 7.6056337f, -0.04225352f, true, Latency.LOW, 10f);
 
     /**
      * Against Minecraft's dark, muffled tone: clear sub rumble, take a little mud out of the
@@ -262,7 +263,8 @@ public final class ClarityConfig {
                 clamp(num(c, "makeup_db", d.makeupDb()), -24f, 24f),
                 clamp(num(c, "output_db", d.outputDb()), -24f, 12f),
                 bool(c, "limiter", d.limiter()),
-                latency);
+                latency,
+                clamp(num(c, "lookahead_ms", d.lookaheadMs()), 0f, 20f));
 
         eq = readEq(section(o, "eq"));
 
@@ -337,7 +339,8 @@ public final class ClarityConfig {
 
         JsonObject j = new JsonObject();
         j.addProperty("_help", "enabled=false keeps the chain but passes audio through uncompressed. "
-                + "latency: LOW (10 ms), NORMAL (20 ms) or SAFE (40 ms) - raise it if you hear crackling.");
+                + "latency: LOW (10 ms), NORMAL (20 ms) or SAFE (40 ms) asks the sound card for that mixing period - raise it if you hear dropouts. "
+                + "lookahead_ms (0-20): the safety limiter sees peaks this far ahead and lowers the gain smoothly instead of clipping; adds that much delay.");
         j.addProperty("enabled", c.enabled());
         j.addProperty("threshold_db", c.thresholdDb());
         j.addProperty("ratio", c.ratio());
@@ -348,6 +351,7 @@ public final class ClarityConfig {
         j.addProperty("output_db", c.outputDb());
         j.addProperty("limiter", c.limiter());
         j.addProperty("latency", c.latency().name());
+        j.addProperty("lookahead_ms", c.lookaheadMs());
         o.add("compressor", j);
 
         JsonObject m = new JsonObject();

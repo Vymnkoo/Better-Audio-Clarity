@@ -57,30 +57,35 @@ public class CompressorScreen extends Screen {
         addRenderableWidget(new ParamSlider(left, y, "Output", -24f, 12f, false, p.outputDb(), v -> fmt("%+.1f dB", v),
                 (q, v) -> with(q, q.thresholdDb(), q.ratio(), q.attackMs(), q.releaseMs(), q.kneeDb(), q.makeupDb(), v)));
         addRenderableWidget(Button.builder(limiterLabel(), b -> {
-            update(new Compressor(p.enabled(), p.thresholdDb(), p.ratio(), p.attackMs(), p.releaseMs(), p.kneeDb(), p.makeupDb(), p.outputDb(), !p.limiter(), p.latency()));
+            update(new Compressor(p.enabled(), p.thresholdDb(), p.ratio(), p.attackMs(), p.releaseMs(), p.kneeDb(), p.makeupDb(), p.outputDb(), !p.limiter(), p.latency(), p.lookaheadMs()));
             b.setMessage(limiterLabel());
         }).bounds(right, y, SLIDER_W, 20).build());
         y += ROW;
         addRenderableWidget(Button.builder(enabledLabel(), b -> {
-            update(new Compressor(!p.enabled(), p.thresholdDb(), p.ratio(), p.attackMs(), p.releaseMs(), p.kneeDb(), p.makeupDb(), p.outputDb(), p.limiter(), p.latency()));
+            update(new Compressor(!p.enabled(), p.thresholdDb(), p.ratio(), p.attackMs(), p.releaseMs(), p.kneeDb(), p.makeupDb(), p.outputDb(), p.limiter(), p.latency(), p.lookaheadMs()));
             b.setMessage(enabledLabel());
         }).bounds(left, y, SLIDER_W, 20).build());
         addRenderableWidget(Button.builder(latencyLabel(), b -> {
-            update(new Compressor(p.enabled(), p.thresholdDb(), p.ratio(), p.attackMs(), p.releaseMs(), p.kneeDb(), p.makeupDb(), p.outputDb(), p.limiter(), p.latency().next()));
+            update(new Compressor(p.enabled(), p.thresholdDb(), p.ratio(), p.attackMs(), p.releaseMs(), p.kneeDb(), p.makeupDb(), p.outputDb(), p.limiter(), p.latency().next(), p.lookaheadMs()));
             b.setMessage(latencyLabel());
         }).bounds(right, y, SLIDER_W, 20).build());
+        y += ROW;
+        addRenderableWidget(new ParamSlider(left, y, "Lookahead", 0f, 20f, false, p.lookaheadMs(),
+                v -> v < 0.05f ? "off" : fmt("%.1f ms", v),
+                (q, v) -> new Compressor(q.enabled(), q.thresholdDb(), q.ratio(), q.attackMs(), q.releaseMs(), q.kneeDb(),
+                        q.makeupDb(), q.outputDb(), q.limiter(), q.latency(), v)));
 
         addRenderableWidget(Button.builder(Component.literal("Reset to defaults"), b -> {
             Compressor d = ClarityConfig.DEFAULT_COMPRESSOR;
             update(new Compressor(d.enabled(), d.thresholdDb(), d.ratio(), d.attackMs(), d.releaseMs(), d.kneeDb(),
-                    d.makeupDb(), d.outputDb(), d.limiter(), p.latency()));
+                    d.makeupDb(), d.outputDb(), d.limiter(), p.latency(), d.lookaheadMs()));
             rebuildWidgets();
         }).bounds(left, height - 28, SLIDER_W, 20).build());
         addRenderableWidget(Button.builder(Component.literal("Done"), b -> onClose()).bounds(right, height - 28, SLIDER_W, 20).build());
     }
 
     private static Compressor with(Compressor q, float thr, float ratio, float atk, float rel, float knee, float makeup, float out) {
-        return new Compressor(q.enabled(), thr, ratio, atk, rel, knee, makeup, out, q.limiter(), q.latency());
+        return new Compressor(q.enabled(), thr, ratio, atk, rel, knee, makeup, out, q.limiter(), q.latency(), q.lookaheadMs());
     }
 
     private void update(Compressor next) {
@@ -141,7 +146,7 @@ public class CompressorScreen extends Screen {
 
         int x = width / 2 - SLIDER_W - 5;
         int w = SLIDER_W * 2 + 10;
-        int y = 36 + ROW * 5 + 6;
+        int y = 36 + ROW * 6 + 6;
         meter(g, x, y, w, "IN", shownIn, -60f, 0f, 0xFF4CAF50, false);
         meter(g, x, y + 16, w, "GR", shownGr, -24f, 0f, 0xFFE53935, true);
         meter(g, x, y + 32, w, "OUT", shownOut, -60f, 0f, 0xFF42A5F5, false);

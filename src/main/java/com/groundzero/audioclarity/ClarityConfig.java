@@ -138,6 +138,10 @@ public final class ClarityConfig {
     static final float DEFAULT_IN_GAME_MUSIC_DB = -6f;
     private static volatile float inGameMusicDb = DEFAULT_IN_GAME_MUSIC_DB;
     private static volatile boolean sliderResetDone;
+    /** True once the Master slider's level has been moved into Output (Music & Sound shows Output instead). */
+    private static volatile boolean masterMovedToOutput;
+    /** The bottom of the Output slider in Music & Sound: effectively silent. */
+    public static final float OUTPUT_OFF_DB = -60f;
     private static volatile Compressor compressor = DEFAULT_COMPRESSOR;
     private static volatile Eq eq = DEFAULT_EQ;
     private static volatile Map<String, Float> mix = DEFAULT_MIX;
@@ -172,6 +176,15 @@ public final class ClarityConfig {
 
     public static synchronized void markSliderResetDone() {
         sliderResetDone = true;
+        save();
+    }
+
+    public static boolean masterMovedToOutput() {
+        return masterMovedToOutput;
+    }
+
+    public static synchronized void markMasterMovedToOutput() {
+        masterMovedToOutput = true;
         save();
     }
 
@@ -240,7 +253,7 @@ public final class ClarityConfig {
     public static synchronized void setOutputDb(float db) {
         Compressor c = compressor;
         compressor = new Compressor(c.enabled(), c.thresholdDb(), c.ratio(), c.attackMs(), c.releaseMs(), c.kneeDb(),
-                c.makeupDb(), clamp(db, -24f, 12f), c.limiter(), c.latency(), c.lookaheadMs());
+                c.makeupDb(), clamp(db, OUTPUT_OFF_DB, 12f), c.limiter(), c.latency(), c.lookaheadMs());
     }
 
     public static synchronized void setCompressorEnabled(boolean on) {
@@ -446,6 +459,7 @@ public final class ClarityConfig {
         showMeter = bool(o, "show_meter", true);
         inGameMusicDb = clamp(num(o, "in_game_music_db", DEFAULT_IN_GAME_MUSIC_DB), -40f, 0f);
         sliderResetDone = bool(o, "slider_reset_done", false);
+        masterMovedToOutput = bool(o, "master_moved_to_output", false);
 
         JsonObject c = section(o, "compressor");
         Compressor d = DEFAULT_COMPRESSOR;
@@ -463,7 +477,7 @@ public final class ClarityConfig {
                 clamp(num(c, "release_ms", d.releaseMs()), 5f, 3000f),
                 clamp(num(c, "knee_db", d.kneeDb()), 0f, 24f),
                 clamp(num(c, "makeup_db", d.makeupDb()), -24f, 24f),
-                clamp(num(c, "output_db", d.outputDb()), -24f, 12f),
+                clamp(num(c, "output_db", d.outputDb()), OUTPUT_OFF_DB, 12f),
                 bool(c, "limiter", d.limiter()),
                 latency,
                 clamp(num(c, "lookahead_ms", d.lookaheadMs()), 0f, 20f));
@@ -526,6 +540,7 @@ public final class ClarityConfig {
         o.addProperty("show_meter", showMeter);
         o.addProperty("in_game_music_db", inGameMusicDb);
         o.addProperty("slider_reset_done", sliderResetDone);
+        o.addProperty("master_moved_to_output", masterMovedToOutput);
 
         JsonObject q = new JsonObject();
         q.addProperty("_help", "Global EQ on everything except music, after the compressor and before the limiter. Band types: "

@@ -38,9 +38,31 @@ public abstract class MinecraftTickMixin {
             if (!ClarityConfig.sliderResetDone()) {
                 audioclarity$resetCategorySliders();
             }
+            if (!ClarityConfig.masterMovedToOutput() && MasterBus.active() != null) {
+                audioclarity$moveMasterToOutput();
+            }
         }
         ClarityConfig.poll();
         com.groundzero.audioclarity.audio.MusicDuck.tick((Minecraft) (Object) this);
+    }
+
+    /**
+     * Music &amp; Sound shows Output in place of Master (SoundOptionsOutputMixin), so Master must not
+     * stay below 100% where nobody can reach it. Once, fold its level into Output instead - the
+     * game sounds exactly as loud as before.
+     */
+    @Unique
+    private void audioclarity$moveMasterToOutput() {
+        float master = options.getSoundSourceVolume(SoundSource.MASTER);
+        if (master < 1f) {
+            float out = ClarityConfig.compressor().outputDb();
+            ClarityConfig.setOutputDb(master <= 0f ? ClarityConfig.OUTPUT_OFF_DB : out + (float) (20.0 * Math.log10(master)));
+            options.getSoundSourceOptionInstance(SoundSource.MASTER).set(1.0);
+            options.save();
+            LOGGER.info("Master was {}%: moved into Output ({} dB -> {} dB), Master is now 100%",
+                    Math.round(master * 100f), out, ClarityConfig.compressor().outputDb());
+        }
+        ClarityConfig.markMasterMovedToOutput();
     }
 
     @Unique

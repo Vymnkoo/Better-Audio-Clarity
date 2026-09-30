@@ -33,6 +33,14 @@ public abstract class MusicSoundFooterMixin extends Screen {
         super(title);
     }
 
+    /** Music &amp; Sound's Output slider (SoundOptionsOutputMixin) lives in our config: save it on close. */
+    @Inject(method = "removed", at = @At("HEAD"))
+    private void audioclarity$saveOutput(CallbackInfo ci) {
+        if ((Object) this instanceof SoundOptionsScreen) {
+            ClarityConfig.saveNow();
+        }
+    }
+
     @Inject(method = "addFooter", at = @At("HEAD"), cancellable = true)
     private void audioclarity$roomForMeter(CallbackInfo ci) {
         if ((Object) this instanceof SoundOptionsScreen && ClarityConfig.showMeter() && MasterBus.active() != null) {

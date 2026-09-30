@@ -4,6 +4,8 @@
 
 A mastering chain for Minecraft's sound. Client-side Fabric mod for **Minecraft 26.3**. It needs only Fabric Loader; Fabric API isn't required.
 
+> **Status: Beta.** It works, but it's still being tuned: settings and defaults may change between versions.
+
 ## TL;DR
 
 Makes Minecraft sound slightly better.

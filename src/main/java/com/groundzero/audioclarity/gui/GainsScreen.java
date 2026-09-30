@@ -76,6 +76,10 @@ public class GainsScreen extends TabbedScreen {
             int ry = y + (r % half) * 11;
             String name = e.getKey().replace("minecraft:", "");
             String value = e.getValue() <= ClarityConfig.MUTE_DB ? "muted" : String.format(Locale.ROOT, "%+.1f dB", e.getValue());
+            int room = colW - font.width(value) - 6;
+            if (font.width(name) > room) {
+                name = font.plainSubstrByWidth(name, room - font.width("...")) + "...";
+            }
             g.text(font, name, x, ry, 0xFFA0A0A0);
             g.text(font, value, x + colW - font.width(value), ry, e.getValue() < 0 ? 0xFFFF8A80 : 0xFF7CFC7C);
         }

@@ -92,7 +92,8 @@ public final class ClarityConfig {
             "minecraft:block.grass.place", 6.0f,
             "minecraft:entity.enderman.ambient", 7.5f,
             "minecraft:entity.tnt.primed", 2.5f,
-            "minecraft:entity.firework_rocket.*", -8.0f);
+            "minecraft:entity.firework_rocket.*", -8.0f,
+            "player|*.step", 6.0f);
 
     public static final float MUTE_DB = -40f;
     private static final int MAX_BANDS = 10;
@@ -158,16 +159,24 @@ public final class ClarityConfig {
     }
 
     /**
-     * Linear gain for a sound ID - 1.0 when untouched. Keys are sound IDs, or a group ending in
-     * ".*" for every sound whose ID starts with it; a sound gets its own adjustment plus every
-     * group it belongs to. Called for every sound that plays, so results are cached.
+     * Linear gain for a sound - 1.0 when untouched. Keys are:
+     * <ul>
+     *   <li>a sound ID: {@code "minecraft:entity.zombie.hurt"}</li>
+     *   <li>a group by start: {@code "minecraft:entity.zombie.*"}</li>
+     *   <li>a group by end: {@code "*.step"} (every footstep sound)</li>
+     *   <li>any of those limited to one category: {@code "player|*.step"} (only the player's
+     *       footsteps - mobs walking on the same blocks use the same sounds)</li>
+     * </ul>
+     * A sound gets the sum of every rule that matches it. Called for every sound that plays, so
+     * results are cached per ID and category.
      */
-    public static float soundGain(String id) {
+    public static float soundGain(String id, String category) {
         Map<String, Float> rules = sounds;
         if (rules.isEmpty()) {
             return 1f;
         }
-        Float cached = gainCache.get(id);
+        String cacheKey = category + '|' + id;
+        Float cached = gainCache.get(cacheKey);
         if (cached != null) {
             return cached;
         }
@@ -175,14 +184,33 @@ public final class ClarityConfig {
         if (soundGroups) {
             for (Map.Entry<String, Float> e : rules.entrySet()) {
                 String k = e.getKey();
-                if (k.endsWith("*") && id.startsWith(k.substring(0, k.length() - 1))) {
+                int bar = k.indexOf('|');
+                if (bar >= 0) {
+                    if (!k.substring(0, bar).equals(category)) {
+                        continue;
+                    }
+                    k = k.substring(bar + 1);
+                } else if (k.equals(id)) {
+                    continue; // already counted above
+                }
+                if (matches(k, id)) {
                     db += e.getValue();
                 }
             }
         }
         float g = db <= MUTE_DB ? 0f : (float) Math.pow(10.0, db / 20.0);
-        gainCache.put(id, g);
+        gainCache.put(cacheKey, g);
         return g;
+    }
+
+    private static boolean matches(String pattern, String id) {
+        if (pattern.endsWith("*")) {
+            return id.startsWith(pattern.substring(0, pattern.length() - 1));
+        }
+        if (pattern.startsWith("*")) {
+            return id.endsWith(pattern.substring(1));
+        }
+        return pattern.equals(id);
     }
 
     static Path file() {
@@ -363,7 +391,8 @@ public final class ClarityConfig {
 
         JsonObject s = new JsonObject();
         s.addProperty("_help", "Extra volume in dB for single sounds (\"minecraft:entity.zombie.hurt\") or groups "
-                + "ending in .* (\"minecraft:entity.zombie.*\"). -40 mutes. /playsound suggests the IDs.");
+                + "starting or ending with * (\"minecraft:entity.zombie.*\", \"*.step\"), optionally limited to one category with \"category|\" "
+                + "(\"player|*.step\" = only your own footsteps). Matching rules add up. -40 mutes. /playsound suggests the IDs.");
         sounds.forEach(s::addProperty);
         o.add("sound_adjustments_db", s);
 
@@ -388,7 +417,7 @@ public final class ClarityConfig {
     }
 
     private static boolean hasGroups(Map<String, Float> rules) {
-        return rules.keySet().stream().anyMatch(k -> k.endsWith("*"));
+        return rules.keySet().stream().anyMatch(k -> k.contains("*") || k.contains("|"));
     }
 
     private static JsonObject section(JsonObject o, String key) {

@@ -70,7 +70,7 @@ public abstract class SoundEngineMixerMixin {
         SoundInstance sound = audioclarity$starting;
         if (sound != null) {
             audioclarity$starting = null; // once per play()
-            float g = ClarityConfig.soundGain(sound.getIdentifier().toString());
+            float g = ClarityConfig.soundGain(sound.getIdentifier().toString(), sound.getSource().getName());
             if (g != 1f) {
                 cir.setReturnValue(cir.getReturnValueF() * g);
             }
@@ -80,7 +80,7 @@ public abstract class SoundEngineMixerMixin {
     @Inject(method = "calculateVolume(Lnet/minecraft/client/resources/sounds/SoundInstance;)F",
             at = @At("RETURN"), cancellable = true)
     private void audioclarity$tickGain(SoundInstance sound, CallbackInfoReturnable<Float> cir) {
-        float g = ClarityConfig.soundGain(sound.getIdentifier().toString());
+        float g = ClarityConfig.soundGain(sound.getIdentifier().toString(), sound.getSource().getName());
         if (g != 1f) {
             cir.setReturnValue(cir.getReturnValueF() * g);
         }

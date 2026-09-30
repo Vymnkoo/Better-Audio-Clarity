@@ -92,21 +92,6 @@ Requirements:
 
 Output: `better-audio-clarity-<version>.jar`.
 
-## Changelog
-
-**1.1.0**
-- New, more transparent compressor tuning (−30 dB, 2:1, 50 ms / 248 ms, knee 11 dB, make-up +5.4 dB, output +3.5 dB).
-- Safety limiter with 10 ms lookahead and a −1 dB ceiling (fixes crackling on loud peaks, keeps recordings under 0 dB).
-- UI sounds skip the compressor; so do server menu ticks and countdowns (`skip_compressor_sounds`).
-- Output also lifts music and UI.
-- Smarter per-sound rules: `*suffix` and `category|pattern`. Your own footsteps +10 dB, Wither −6 dB, Hypixel countdown −14 dB, note blocks −6 dB.
-- New category levels: jukebox 38%, weather 23%, blocks 27%, players 11%, UI 51%, music 14%.
-- One-time reset of the category sliders to 100% on first start.
-- Meter moved to the bottom of Music & Sound.
-- Make-up and output changes are smoothed (no clicks).
-- `log_sounds` option for tracking down loud server sounds.
-
-**1.0.1**: author and icon. **1.0.0**: first release.
 ## How this was made
 
 Better Audio Clarity was built with AI assistance. The code was written with the help of Claude (Anthropic), under human direction.

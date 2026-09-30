@@ -13,7 +13,8 @@
     "ChannelAccessAccessor",
     "SoundPhysicsSkipMusicMixin",
     "ScreenMeterMixin",
-    "MinecraftTickMixin"
+    "MinecraftTickMixin",
+    "SoundOptionsCompressorButtonMixin"
   ],
   "injectors": {
     "defaultRequire": 1

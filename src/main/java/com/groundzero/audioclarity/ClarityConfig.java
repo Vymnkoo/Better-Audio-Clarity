@@ -62,7 +62,7 @@ public final class ClarityConfig {
     public static final Set<String> BAND_TYPES = Set.of("highpass", "lowpass", "lowshelf", "highshelf", "peak");
 
     /** Tuned by ear by Vymnkoo, 2026-09-30: gentler and more transparent than the first Emberwild tuning. */
-    public static final Compressor DEFAULT_COMPRESSOR = new Compressor(true, -27.887323f, 1.5906258f, 49.729725f, 247.50362f,
+    public static final Compressor DEFAULT_COMPRESSOR = new Compressor(true, -27.253521f, 1.5906258f, 49.729725f, 247.50362f,
             11.323944f, 4.9859157f, -0.04225352f, true, Latency.LOW, 10f);
 
     /**
@@ -79,10 +79,10 @@ public final class ClarityConfig {
     static final Map<String, Float> DEFAULT_MIX = ordered(
             "record", 0.3818687f,
             "weather", 0.2339578f,
-            "block", 0.2959513f,
+            "block", 0.2719834f,
             "hostile", 0.16901408f,
             "neutral", 0.27f,
-            "player", 0.1602113f,
+            "player", 0.113389f,
             "ambient", 0.32042253f,
             "voice", 0.3732394f,
             "ui", 0.2713747f);

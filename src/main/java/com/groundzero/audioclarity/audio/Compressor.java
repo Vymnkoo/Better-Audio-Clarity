@@ -22,8 +22,6 @@ public final class Compressor {
     private final float sampleRate;
     private final Equalizer eq;
     private final LookaheadLimiter limiter;
-    /** Loudness (LUFS) of the finished output, after the Master slider - what speakers and recordings get. */
-    public final LoudnessMeter loudness;
     private float grDb;             // current gain reduction, <= 0
     private float masterGain = 1f;  // last block's master volume, ramped from to avoid zipper noise
     private float staticGain = 1f;  // last block's make-up x output, ramped the same way
@@ -37,7 +35,6 @@ public final class Compressor {
         this.sampleRate = sampleRate;
         this.eq = new Equalizer(sampleRate);
         this.limiter = new LookaheadLimiter((int) Math.ceil(MAX_LOOKAHEAD_MS * 0.001 * sampleRate));
-        this.loudness = new LoudnessMeter(sampleRate);
     }
 
     /**
@@ -128,7 +125,6 @@ public final class Compressor {
             float m = masterStart + masterStep * (i + 1);
             l *= m;
             r *= m;
-            loudness.add(l, r);
             MemoryUtil.memPutFloat(at, l);
             MemoryUtil.memPutFloat(at + 4, r);
         }

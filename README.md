@@ -25,30 +25,32 @@ game mix → compressor → make-up → output → EQ → limiter → Master sli
 
 ## Features
 
-- **Live master compressor.** Stereo-linked with a soft knee, it evens out the mix so quiet sounds are heard and loud ones don't blast.
+- **Transparent master compressor.** Stereo-linked with a soft knee, tuned gently (threshold −30 dB, ratio 2:1, attack 50 ms, release 248 ms, knee 11 dB), so quiet sounds are heard and loud ones don't blast, without the game sounding squashed.
 - **Master slider is the final gain.** It's applied after the compressor, so turning the game down never changes how hard the compressor works.
 - **Global EQ.** Up to 10 bands (highpass, lowpass, lowshelf, highshelf, peak) after the compressor. The default curve brightens Minecraft's muffled tone:
   - highpass at 30 Hz
   - −2 dB at 300 Hz
   - +2 dB at 3.5 kHz
   - +3 dB high shelf from 9 kHz
-- **Safety limiter** at −0.3 dBFS, so nothing clips.
-- **Music skips the chain.** Music plays straight to the sound card, so loud moments never pump it down.
-- **Category mix.** Each sound category has a tuned level at 100% on its slider. Players can still turn anything down from there.
-- **Per-sound adjustments** in dB, for single sounds or whole groups (`minecraft:entity.zombie.*`).
-- **Meter.** IN / GR / OUT bars in the top-right corner of Music & Sound.
-- **Low latency.** There's no extra buffering: the sound card pulls audio through the chain on demand, so the only delay is the card's own ~10 ms period.
-
+- **Lookahead safety limiter** at −1 dB. It sees loud peaks 10 ms ahead and lowers the volume smoothly before they arrive, so nothing clips or crackles, and recordings stay clean after encoding.
+- **Music and UI skip the chain.** They play straight to the sound card, so loud moments never pump the music down and menu clicks never make the compressor pump the game.
+- **Server sounds that would pump skip it too.** Servers often use normal sounds as menu "ticks" or countdowns: button clicks (mcpvp), UI clicks in the Master category and note block ticks (Hypixel). They go around the compressor, and the Hypixel countdown is turned down.
+- **One Output for everything.** The Output gain applies to music and UI as well, so raising the overall level never buries them.
+- **Category mix.** Each sound category has a tuned level at 100% on its slider (music at 14%). Players can still turn anything down from there.
+- **Per-sound adjustments** in dB, for single sounds, groups (`minecraft:entity.zombie.*`, `*.step`) or one category only (`player|*.step` = just your own footsteps, +10 dB by default).
+- **First start sets the category sliders to 100%, once**, so sliders lowered in vanilla don't lower a category twice. Master and Music are left alone.
+- **Meter.** IN / GR / OUT bars at the bottom of Music & Sound, above Done.
+- **Low latency.** No extra buffering: the sound card pulls audio through the chain on demand. The delay is the card's own period (~10 ms) plus the limiter's 10 ms lookahead.
+- **Level.** About −21 LUFS in normal play, with peaks held at −1 dB: a natural level for game audio. For YouTube-level recordings, add Gain + Limiter in OBS.
 ## How it works
 
 Minecraft normally mixes straight into the sound card through OpenAL. Better Audio Clarity makes it mix into an OpenAL Soft **loopback device** instead. Every sound, every mod and every reverb effect still happens inside OpenAL.
 
 The real sound card then plays a single stereo source that uses `AL_SOFT_callback_buffer`. Whenever the card needs audio, the callback renders exactly that many frames from the loopback mix, runs them through the chain in place and hands them back.
 
-Music channels are created on the sound card's own context, so music bypasses the loopback. Each call on a music channel switches to that context with `ALC_EXT_thread_local_context`.
+Sounds that skip the chain (music, UI and the skip list) are streamed, and their channels are created on the sound card's own context, so they bypass the loopback. Each call on such a channel switches to that context with `ALC_EXT_thread_local_context`. The game gets 16 streaming channels instead of 8 for this.
 
 If the OpenAL build lacks the needed extensions, or anything fails to start, audio falls back to Minecraft's normal path.
-
 ## Configuration
 
 Settings live in `config/better-audio-clarity.json`, which is created on first start with the defaults. **Saved changes apply live within a second.** Only `master_bus` and `latency` need F3+T. A file with a typo is ignored (the log says so), and the last good settings stay in use.
@@ -56,18 +58,23 @@ Settings live in `config/better-audio-clarity.json`, which is created on first s
 | Key | What it does |
 |---|---|
 | `master_bus` | `false` = whole chain off, vanilla audio path (use this if the game has no sound or crackles) |
-| `music_skips_compressor` | `false` = music goes through the chain like everything else |
+| `music_skips_compressor` / `ui_skips_compressor` | `false` = that category goes through the chain like everything else |
+| `skip_compressor_sounds` | list of single sounds that go around the chain, e.g. `"*_button.click_on"`, `"minecraft:ui.*"` |
+| `log_sounds` | `true` = write every sound to the log with its ID, category and route (to find a server's loud sound) |
 | `show_meter` | meter on the Music & Sound screen |
+| `slider_reset_done` | set after the one-time slider reset; `false` = do it again on next start |
 | `eq.enabled`, `eq.bands[]` | `type`, `freq_hz`, `gain_db` (not for pass filters), `q` (0.707 = standard) |
-| `compressor.*` | `threshold_db`, `ratio`, `attack_ms`, `release_ms`, `knee_db`, `makeup_db`, `output_db`, `limiter`, `latency` (`LOW` 10 ms / `NORMAL` 20 ms / `SAFE` 40 ms) |
+| `compressor.*` | `threshold_db`, `ratio`, `attack_ms`, `release_ms`, `knee_db`, `makeup_db`, `output_db`, `limiter`, `lookahead_ms` (0–20), `latency` (`LOW` 10 ms / `NORMAL` 20 ms / `SAFE` 40 ms, a request to the sound card) |
 | `category_mix` | level per category at 100% on its slider; `1.0` = vanilla |
-| `sound_adjustments_db` | `"sound.id": dB` or `"prefix.*": dB`; `-40` mutes |
+| `sound_adjustments_db` | `"pattern": dB`. Patterns: a sound ID, `"prefix.*"`, `"*suffix"`, optionally `"category|pattern"`. Matching rules add up; `-40` mutes |
 
+**A server sound is too loud or makes the audio pump?** Set `log_sounds` to `true`, reproduce it, and look for `[sound]` lines in `logs/latest.log` at that moment. Add its ID to `skip_compressor_sounds` and/or `sound_adjustments_db`.
 ## Compatibility
 
 - Works alongside Sodium, Iris, Lithium, C2ME, ViaFabricPlus and similar mods (tested in a 148-mod instance).
-- If Sound Physics Remastered is installed, its reverb is skipped for music, which bypasses the chain.
+- If Sound Physics Remastered is installed, its reverb is skipped for sounds that bypass the chain (music, UI, the skip list).
 - Voice chat mods (Simple Voice Chat, Plasmo Voice) open their own OpenAL device, so voice doesn't go through the chain.
+- Tested on Hypixel and mcpvp.com (through ViaFabricPlus).
 - Not compatible with Emberwild AutoTune, which hooks the same code. `fabric.mod.json` declares this.
 
 ## Building
@@ -85,6 +92,21 @@ Requirements:
 
 Output: `better-audio-clarity-<version>.jar`.
 
+## Changelog
+
+**1.1.0**
+- New, more transparent compressor tuning (−30 dB, 2:1, 50 ms / 248 ms, knee 11 dB, make-up +5.4 dB, output +3.5 dB).
+- Safety limiter with 10 ms lookahead and a −1 dB ceiling (fixes crackling on loud peaks, keeps recordings under 0 dB).
+- UI sounds skip the compressor; so do server menu ticks and countdowns (`skip_compressor_sounds`).
+- Output also lifts music and UI.
+- Smarter per-sound rules: `*suffix` and `category|pattern`. Your own footsteps +10 dB, Wither −6 dB, Hypixel countdown −14 dB, note blocks −6 dB.
+- New category levels: jukebox 38%, weather 23%, blocks 27%, players 11%, UI 51%, music 14%.
+- One-time reset of the category sliders to 100% on first start.
+- Meter moved to the bottom of Music & Sound.
+- Make-up and output changes are smoothed (no clicks).
+- `log_sounds` option for tracking down loud server sounds.
+
+**1.0.1**: author and icon. **1.0.0**: first release.
 ## How this was made
 
 Better Audio Clarity was built with AI assistance. The code was written with the help of Claude (Anthropic), under human direction.

@@ -44,10 +44,6 @@ public final class ClarityConfig {
         Latency(int refreshHz) {
             this.refreshHz = refreshHz;
         }
-
-        public Latency next() {
-            return values()[(ordinal() + 1) % values().length];
-        }
     }
 
     public record Compressor(boolean enabled, float thresholdDb, float ratio, float attackMs, float releaseMs,
@@ -198,16 +194,6 @@ public final class ClarityConfig {
 
     public static Compressor compressor() {
         return compressor;
-    }
-
-    /** Live change from the tuning screen: heard at once, written to the file by {@link #saveNow}. */
-    public static void setCompressor(Compressor c) {
-        compressor = c;
-    }
-
-    /** Writes the current settings to the file (the tuning screen calls this when it closes). */
-    public static synchronized void saveNow() {
-        save();
     }
 
     /** A new object whenever the settings change, so the EQ can tell when to recompute. */

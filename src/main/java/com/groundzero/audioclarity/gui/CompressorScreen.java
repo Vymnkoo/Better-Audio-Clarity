@@ -2,6 +2,7 @@ package com.groundzero.audioclarity.gui;
 
 import com.groundzero.audioclarity.ClarityConfig;
 import com.groundzero.audioclarity.ClarityConfig.Compressor;
+import com.groundzero.audioclarity.audio.LoudnessMeter;
 import com.groundzero.audioclarity.audio.MasterBus;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractSliderButton;
@@ -74,6 +75,12 @@ public class CompressorScreen extends Screen {
                 v -> v < 0.05f ? "off" : fmt("%.1f ms", v),
                 (q, v) -> new Compressor(q.enabled(), q.thresholdDb(), q.ratio(), q.attackMs(), q.releaseMs(), q.kneeDb(),
                         q.makeupDb(), q.outputDb(), q.limiter(), q.latency(), v)));
+        addRenderableWidget(Button.builder(Component.literal("Reset loudness (LUFS)"), b -> {
+            MasterBus bus = MasterBus.active();
+            if (bus != null) {
+                bus.compressor().loudness.resetRequested = true;
+            }
+        }).bounds(right, y, SLIDER_W, 20).build());
 
         addRenderableWidget(Button.builder(Component.literal("Reset to defaults"), b -> {
             Compressor d = ClarityConfig.DEFAULT_COMPRESSOR;
@@ -151,10 +158,29 @@ public class CompressorScreen extends Screen {
         meter(g, x, y + 16, w, "GR", shownGr, -24f, 0f, 0xFFE53935, true);
         meter(g, x, y + 32, w, "OUT", shownOut, -60f, 0f, 0xFF42A5F5, false);
 
-        String status = bus == null
-                ? "Master bus not active - audio is running the normal way (see the log)"
-                : String.format(Locale.ROOT, "Master bus active - %d Hz, sound card period %.1f ms", bus.sampleRate(), bus.periodMs());
-        g.centeredText(font, status, width / 2, y + 50, bus == null ? 0xFFFF8A80 : 0xFFA0A0A0);
+        if (bus == null) {
+            g.centeredText(font, "Master bus not active - audio is running the normal way (see the log)", width / 2, y + 50, 0xFFFF8A80);
+            return;
+        }
+        // Loudness of what leaves the game (after Master) - the number YouTube/Spotify normalise to.
+        LoudnessMeter lm = bus.compressor().loudness;
+        float integrated = lm.integratedLufs;
+        String line = String.format(Locale.ROOT, "LUFS   Short-term %s   Integrated %s   Peak %s   (target %.0f)",
+                lufsText(lm.shortTermLufs), lufsText(integrated),
+                lm.peakDb <= -119f ? "-inf" : String.format(Locale.ROOT, "%.1f dB", lm.peakDb), TARGET_LUFS);
+        int colour = integrated < -69f ? 0xFFE0E0E0
+                : Math.abs(integrated - TARGET_LUFS) <= 1f ? 0xFF7CFC7C    // on target (within 1 LU)
+                : integrated > TARGET_LUFS ? 0xFFFF8A80                      // too loud
+                : 0xFFFFD580;                                                // too quiet
+        g.centeredText(font, line, width / 2, y + 50, colour);
+        g.centeredText(font, String.format(Locale.ROOT, "%d Hz, sound card period %.1f ms", bus.sampleRate(), bus.periodMs()),
+                width / 2, y + 62, 0xFF808080);
+    }
+
+    private static final float TARGET_LUFS = -14f;
+
+    private static String lufsText(float v) {
+        return v < -69f ? "--" : String.format(Locale.ROOT, "%.1f", v);
     }
 
     /** A horizontal level bar; gain reduction grows from the right like a GR meter on a desk. */

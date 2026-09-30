@@ -14,7 +14,7 @@ public final class CompressorMeter {
 
     /** Room the meter needs above the Done button (MusicSoundFooterMixin makes the footer this much taller). */
     public static final int HEIGHT = 42;
-    private static final int WIDTH = 310;
+    private static final int BAR_W = 200;   // same as the Done button
     private static final int BAR_H = 10;
     private static final int ROW = 14;
 
@@ -38,19 +38,19 @@ public final class CompressorMeter {
         shownOut = Math.max(c.meterOutDb, shownOut - 20f * dt);
         shownGr = Math.min(c.meterGrDb, shownGr + 20f * dt);
 
-        int x = (screenWidth - WIDTH) / 2;
-        bar(g, font, x, top, "IN", shownIn, -60f, 0f, 0xFF4CAF50, false);
-        bar(g, font, x, top + ROW, "GR", shownGr, -24f, 0f, 0xFFE53935, true);
-        bar(g, font, x, top + ROW * 2, "OUT", shownOut, -60f, 0f, 0xFF42A5F5, false);
+        // The bars are centred and as wide as the Done button below them; labels hang off the
+        // left, values off the right.
+        int bx = (screenWidth - BAR_W) / 2;
+        bar(g, font, bx, top, "IN", shownIn, -60f, 0f, 0xFF4CAF50, false);
+        bar(g, font, bx, top + ROW, "GR", shownGr, -24f, 0f, 0xFFE53935, true);
+        bar(g, font, bx, top + ROW * 2, "OUT", shownOut, -60f, 0f, 0xFF42A5F5, false);
     }
 
     /** A horizontal level bar; gain reduction grows from the right like a GR meter on a desk. */
-    private static void bar(GuiGraphicsExtractor g, Font font, int x, int y, String label, float db, float min, float max,
+    private static void bar(GuiGraphicsExtractor g, Font font, int bx, int y, String label, float db, float min, float max,
                             int color, boolean fromRight) {
-        int labelW = 24;
-        int bx = x + labelW;
-        int bw = WIDTH - labelW - 52;
-        g.text(font, label, x, y + 1, 0xFFE0E0E0);
+        int bw = BAR_W;
+        g.text(font, label, bx - 6 - font.width(label), y + 1, 0xFFE0E0E0);
         g.fill(bx, y, bx + bw, y + BAR_H, 0xFF202020);
         float t = Math.max(0f, Math.min(1f, (db - min) / (max - min)));
         int len = fromRight ? (int) ((1f - t) * bw) : (int) (t * bw);

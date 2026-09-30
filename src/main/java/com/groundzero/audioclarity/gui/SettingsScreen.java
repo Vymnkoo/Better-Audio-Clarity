@@ -12,29 +12,26 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 /**
- * Better Audio Clarity's settings, opened from Mod Menu: the overall Output level (to match
- * speakers or headphones) and the main on/off switches. The tuned compressor, EQ and mix values
- * stay in config/better-audio-clarity.json. Changes are heard at once and saved on Done.
+ * The General tab, opened from Mod Menu: the overall Output level (to match speakers or
+ * headphones) and the main on/off switches. The Compressor and Gains tabs hold the tuning.
  */
-public class SettingsScreen extends Screen {
+public class SettingsScreen extends TabbedScreen {
 
     private static final int W = 310;
     private static final int HALF = 150;
     private static final int ROW = 24;
     private static final float MIN_DB = -12f, MAX_DB = 12f;
 
-    private final Screen parent;
-
     public SettingsScreen(Screen parent) {
-        super(Component.literal("Better Audio Clarity"));
-        this.parent = parent;
+        super(parent);
     }
 
     @Override
     protected void init() {
+        addTabs();
         int left = width / 2 - W / 2;
         int right = left + HALF + 10;
-        int y = 40;
+        int y = TOP + 4;
         addRenderableWidget(new OutputSlider(left, y));
         y += ROW + 6;
         toggle(left, y, "Compressor", () -> ClarityConfig.compressor().enabled(), ClarityConfig::setCompressorEnabled);
@@ -61,18 +58,11 @@ public class SettingsScreen extends Screen {
     }
 
     @Override
-    public void onClose() {
-        ClarityConfig.saveNow();
-        minecraft.gui.setScreen(parent);
-    }
-
-    @Override
     public void extractRenderState(GuiGraphicsExtractor g, int mouseX, int mouseY, float partialTick) {
         super.extractRenderState(g, mouseX, mouseY, partialTick);
-        g.centeredText(font, title, width / 2, 15, 0xFFFFFFFF);
-        int y = 40 + ROW * 4 + 16;
+        int y = TOP + 4 + ROW * 4 + 16;
         g.centeredText(font, "Output = overall volume of the finished mix (raise it for quiet headphones).", width / 2, y, 0xFFA0A0A0);
-        g.centeredText(font, "Compressor, EQ and mix values: config/better-audio-clarity.json", width / 2, y + 12, 0xFF808080);
+        g.centeredText(font, "Everything is saved in config/better-audio-clarity.json", width / 2, y + 12, 0xFF808080);
     }
 
     /** Output gain in dB, 0.1 dB steps. */

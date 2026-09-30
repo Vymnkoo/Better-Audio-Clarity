@@ -14,7 +14,8 @@
     "SoundPhysicsSkipMusicMixin",
     "ScreenMeterMixin",
     "MusicSoundFooterMixin",
-    "MinecraftTickMixin"
+    "MinecraftTickMixin",
+    "SoundOptionsCompressorButtonMixin"
   ],
   "injectors": {
     "defaultRequire": 1

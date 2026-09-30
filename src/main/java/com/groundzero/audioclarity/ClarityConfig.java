@@ -44,6 +44,10 @@ public final class ClarityConfig {
         Latency(int refreshHz) {
             this.refreshHz = refreshHz;
         }
+
+        public Latency next() {
+            return values()[(ordinal() + 1) % values().length];
+        }
     }
 
     public record Compressor(boolean enabled, float thresholdDb, float ratio, float attackMs, float releaseMs,
@@ -237,6 +241,32 @@ public final class ClarityConfig {
 
     public static void setShowMeter(boolean on) {
         showMeter = on;
+    }
+
+    /** Every compressor setting at once (the Compressor tab). */
+    public static void setCompressor(Compressor c) {
+        compressor = c;
+    }
+
+    /** A category's level at 100% on its slider (the Gains tab). */
+    public static synchronized void setMix(String category, float level) {
+        Map<String, Float> m = new LinkedHashMap<>(mix);
+        m.put(category, clamp(level, 0f, 1f));
+        mix = Collections.unmodifiableMap(m);
+    }
+
+    public static synchronized void resetMix() {
+        mix = DEFAULT_MIX;
+    }
+
+    /** The whole category mix, in file order. */
+    public static Map<String, Float> mixLevels() {
+        return mix;
+    }
+
+    /** The per-sound adjustments in dB, in file order. */
+    public static Map<String, Float> soundAdjustments() {
+        return sounds;
     }
 
     /** Writes the current settings to the file. */

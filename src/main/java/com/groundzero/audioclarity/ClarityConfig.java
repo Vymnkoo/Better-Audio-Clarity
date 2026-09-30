@@ -83,7 +83,8 @@ public final class ClarityConfig {
             "neutral", 0.27f,
             "player", 0.1602113f,
             "ambient", 0.32042253f,
-            "voice", 0.3732394f);
+            "voice", 0.3732394f,
+            "ui", 0.5352113f);
 
     /** Per-sound adjustments in dB on top of the category mix. */
     static final Map<String, Float> DEFAULT_SOUNDS = ordered(

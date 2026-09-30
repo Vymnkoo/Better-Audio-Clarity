@@ -103,11 +103,11 @@ abstract class TabbedScreen extends Screen {
     }
 
     private void askToUnlock() {
-        minecraft.gui.setScreen(new ConfirmScreen(yes -> {
+        Screens.open(new ConfirmScreen(yes -> {
             if (yes) {
                 tuningUnlocked = true;
             }
-            minecraft.gui.setScreen(this);   // re-opens this tab, now with the controls unlocked
+            Screens.open(this);   // re-opens this tab, now with the controls unlocked
         }, Component.literal("Change the tuning?"),
                 Component.literal("Tinkering with these settings changes how Better Audio Clarity sounds. "
                         + "The defaults were tuned by ear, and \"Reset to defaults\" always brings them back.\n\n"
@@ -119,7 +119,7 @@ abstract class TabbedScreen extends Screen {
         ClarityConfig.saveNow();
         TabbedScreen next = tab.open.apply(parent);
         next.latencyAtOpen = latencyAtOpen;
-        minecraft.gui.setScreen(next);
+        Screens.open(next);
     }
 
     @Override
@@ -129,7 +129,7 @@ abstract class TabbedScreen extends Screen {
             // The sound card's period is fixed when its context is made - restart the audio.
             minecraft.getSoundManager().reload();
         }
-        minecraft.gui.setScreen(parent);
+        Screens.open(parent);
     }
 
     /** Keep the game (and its sound) running while tuning, even in singleplayer. */

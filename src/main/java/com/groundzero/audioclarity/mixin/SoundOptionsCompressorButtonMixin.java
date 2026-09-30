@@ -24,7 +24,7 @@ public abstract class SoundOptionsCompressorButtonMixin extends Screen {
         if ((Object) this instanceof SoundOptionsScreen) {
             Screen self = this;
             addRenderableWidget(Button.builder(Component.literal("Compressor..."),
-                    b -> minecraft.gui.setScreen(new CompressorScreen(self))).bounds(6, 6, 90, 20).build());
+                    b -> com.groundzero.audioclarity.gui.Screens.open(new CompressorScreen(self))).bounds(6, 6, 90, 20).build());
         }
     }
 }

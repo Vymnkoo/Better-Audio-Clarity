@@ -77,7 +77,7 @@ public final class ClarityConfig {
     /** Level of each category at 100% on its slider (options.txt names). Music is left at 1. */
     static final Map<String, Float> DEFAULT_MIX = ordered(
             "record", 0.6197183f,
-            "weather", 0.33422535f,
+            "weather", 0.2339578f,
             "block", 0.2959513f,
             "hostile", 0.16901408f,
             "neutral", 0.27f,

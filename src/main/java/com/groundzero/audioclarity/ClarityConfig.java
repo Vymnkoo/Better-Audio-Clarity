@@ -134,6 +134,9 @@ public final class ClarityConfig {
     private static volatile List<String> skipSounds = DEFAULT_SKIP_SOUNDS;
     private static volatile boolean logSounds;
     private static volatile boolean showMeter = true;
+    /** Music level while in a world or on a server, relative to the menus (dB, <= 0). */
+    static final float DEFAULT_IN_GAME_MUSIC_DB = -6f;
+    private static volatile float inGameMusicDb = DEFAULT_IN_GAME_MUSIC_DB;
     private static volatile boolean sliderResetDone;
     private static volatile Compressor compressor = DEFAULT_COMPRESSOR;
     private static volatile Eq eq = DEFAULT_EQ;
@@ -260,6 +263,15 @@ public final class ClarityConfig {
 
     public static void setShowMeter(boolean on) {
         showMeter = on;
+    }
+
+    /** How much quieter music plays once in a world or on a server (dB, 0 = same as the menus). */
+    public static float inGameMusicDb() {
+        return inGameMusicDb;
+    }
+
+    public static void setInGameMusicDb(float db) {
+        inGameMusicDb = clamp(db, -40f, 0f);
     }
 
     /** Every compressor setting at once (the Compressor tab). */
@@ -432,6 +444,7 @@ public final class ClarityConfig {
         skipSounds = stringList(o, "skip_compressor_sounds", DEFAULT_SKIP_SOUNDS);
         logSounds = bool(o, "log_sounds", false);
         showMeter = bool(o, "show_meter", true);
+        inGameMusicDb = clamp(num(o, "in_game_music_db", DEFAULT_IN_GAME_MUSIC_DB), -40f, 0f);
         sliderResetDone = bool(o, "slider_reset_done", false);
 
         JsonObject c = section(o, "compressor");
@@ -511,6 +524,7 @@ public final class ClarityConfig {
         o.add("skip_compressor_sounds", skip);
         o.addProperty("log_sounds", logSounds);
         o.addProperty("show_meter", showMeter);
+        o.addProperty("in_game_music_db", inGameMusicDb);
         o.addProperty("slider_reset_done", sliderResetDone);
 
         JsonObject q = new JsonObject();

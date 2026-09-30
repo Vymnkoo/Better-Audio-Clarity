@@ -40,6 +40,9 @@ public abstract class OptionsSoundMixMixin {
             volume = cir.getReturnValueF();
         }
         float result = volume * ClarityConfig.mix(source.getName());
+        if (source == SoundSource.MUSIC) {
+            result *= com.groundzero.audioclarity.audio.MusicDuck.gain();   // quieter once in a world
+        }
         // Music and UI skip the chain, so the compressor's Output gain would never reach them and
         // raising Output would bury them under the game. Give them the same Output gain, so Output
         // is the final volume for everything and the balance stays as tuned.

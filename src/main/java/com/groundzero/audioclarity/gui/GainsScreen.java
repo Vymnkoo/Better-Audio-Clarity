@@ -22,10 +22,11 @@ public class GainsScreen extends TabbedScreen {
 
     private static final int SLIDER_W = 150;
     private static final int ROW = 22;
-    private static final Map<String, String> NAMES = Map.of(
-            "record", "Jukebox", "weather", "Weather", "block", "Blocks", "hostile", "Hostile",
-            "neutral", "Friendly", "player", "Players", "ambient", "Ambient", "voice", "Voice",
-            "ui", "UI", "music", "Music");
+    private static final Map<String, String> NAMES = Map.ofEntries(
+            Map.entry("record", "Jukebox"), Map.entry("weather", "Weather"), Map.entry("block", "Blocks"),
+            Map.entry("hostile", "Hostile"), Map.entry("neutral", "Friendly"), Map.entry("player", "Players"),
+            Map.entry("ambient", "Ambient"), Map.entry("voice", "Voice"), Map.entry("ui", "UI"),
+            Map.entry("music", "Music"), Map.entry("master", "Server"));   // Master category = sounds servers play
 
     public GainsScreen(Screen parent) {
         super(parent);

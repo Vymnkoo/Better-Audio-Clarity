@@ -89,7 +89,8 @@ public final class ClarityConfig {
             "ambient", 0.32042253f,
             "voice", 0.3732394f,
             "ui", 0.5058152f,
-            "music", 0.14f);   // soft background music; it skips the compressor, so it stays at this level
+            "music", 0.14f,    // soft background music; it skips the compressor, so it stays at this level
+            "master", 0.27f);  // sounds servers play in the Master category (plugins): with the game, not 11 dB above it
 
     /** Per-sound adjustments in dB on top of the category mix. */
     static final Map<String, Float> DEFAULT_SOUNDS = ordered(
@@ -99,7 +100,7 @@ public final class ClarityConfig {
             "minecraft:entity.firework_rocket.*", -8.0f,
             "player|*.step", 10.0f,
             "minecraft:entity.wither.*", -6.0f,    // the Wither only - wither skeletons are "wither_skeleton"
-            "master|minecraft:ui.*", -14.0f,          // UI sounds servers play at full Master volume (Hypixel countdown)
+            "master|minecraft:ui.*", -2.5f,           // UI sounds servers play in Master (Hypixel countdown): -14 dB with the master level
             "minecraft:block.note_block.*", -6.0f,
             "minecraft:entity.splash_potion.break", -8.0f,    // splash and lingering potions shattering
             // Measured against similar sounds (every block "break", every "hit"...): these stood
@@ -509,7 +510,13 @@ public final class ClarityConfig {
 
         eq = readEq(section(o, "eq"));
 
-        mix = Collections.unmodifiableMap(floatMap(o, "category_mix", DEFAULT_MIX));
+        Map<String, Float> mixLevels = floatMap(o, "category_mix", DEFAULT_MIX);
+        for (Map.Entry<String, Float> def : DEFAULT_MIX.entrySet()) {
+            if (mixLevels.putIfAbsent(def.getKey(), def.getValue()) == null) {
+                missing = true;   // a category with no level would play at 100%: add new ones to older files
+            }
+        }
+        mix = Collections.unmodifiableMap(mixLevels);
         Map<String, Float> s = Collections.unmodifiableMap(floatMap(o, "sound_adjustments_db", DEFAULT_SOUNDS));
         soundGroups = hasGroups(s);
         sounds = s;
@@ -605,7 +612,7 @@ public final class ClarityConfig {
 
         JsonObject m = new JsonObject();
         m.addProperty("_help", "Level of each sound category when its slider is at 100% (1.0 = vanilla). "
-                + "Names: record, weather, block, hostile, neutral, player, ambient, voice, ui, music.");
+                + "Names: record, weather, block, hostile, neutral, player, ambient, voice, ui, music, master (sounds servers play in the Master category).");
         mix.forEach(m::addProperty);
         o.add("category_mix", m);
 

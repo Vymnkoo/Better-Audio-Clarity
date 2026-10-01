@@ -32,7 +32,8 @@ abstract class TabbedScreen extends Screen {
     private enum Tab {
         GENERAL("General", SettingsScreen.class, SettingsScreen::new),
         COMPRESSOR("Dynamics (Comp)", CompressorScreen.class, CompressorScreen::new),
-        GAINS("Gains", GainsScreen.class, GainsScreen::new);
+        GAINS("Gains", GainsScreen.class, GainsScreen::new),
+        HARSHNESS("Harshness", HarshnessScreen.class, HarshnessScreen::new);
 
         final String label;
         final Class<? extends TabbedScreen> type;

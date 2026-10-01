@@ -59,6 +59,13 @@ public final class ClarityConfig {
 
     public record Eq(boolean enabled, List<Band> bands) {}
 
+    /**
+     * Harshness tamer (a dynamic EQ): turns down one band - the harsh 2.5-6 kHz region by default -
+     * only while it stands out from the rest of the mix by more than thresholdDb.
+     */
+    public record Tamer(boolean enabled, float freqHz, float q, float thresholdDb, float ratio, float maxCutDb,
+                       float attackMs, float releaseMs) {}
+
     public static final Set<String> BAND_TYPES = Set.of("highpass", "lowpass", "lowshelf", "highshelf", "peak");
 
     /**
@@ -67,6 +74,13 @@ public final class ClarityConfig {
      */
     public static final Compressor DEFAULT_COMPRESSOR = new Compressor(true, -15.669014f, 2.0925527f, 49.729725f, 247.50362f,
             12.0f, 3.0422535f, 5.5f, true, Latency.LOW, 10f);
+
+    /**
+     * Threshold = how far the band may stand above the rest of the sound. +6 dB is about the 95th
+     * percentile of vanilla sound effects (measured over 400 of them, through the default EQ), so
+     * ordinary sounds pass untouched and only piercing ones are tamed.
+     */
+    public static final Tamer DEFAULT_TAMER = new Tamer(true, 3500f, 1.0f, 6f, 4f, 8f, 2f, 80f);
 
     /**
      * Against Minecraft's dark, muffled tone: clear sub rumble, take a little mud out of the
@@ -174,6 +188,7 @@ public final class ClarityConfig {
     public static final float OUTPUT_OFF_DB = -60f;
     private static volatile Compressor compressor = DEFAULT_COMPRESSOR;
     private static volatile Eq eq = DEFAULT_EQ;
+    private static volatile Tamer tamer = DEFAULT_TAMER;
     private static volatile Map<String, Float> mix = DEFAULT_MIX;
     private static volatile Map<String, Float> sounds = DEFAULT_SOUNDS;
     private static volatile boolean soundGroups = hasGroups(DEFAULT_SOUNDS);
@@ -263,6 +278,15 @@ public final class ClarityConfig {
 
     public static Compressor compressor() {
         return compressor;
+    }
+
+    /** A new object whenever the settings change, so the tamer can tell when to recompute. */
+    public static Tamer tamer() {
+        return tamer;
+    }
+
+    public static void setTamer(Tamer t) {
+        tamer = t;
     }
 
     /** A new object whenever the settings change, so the EQ can tell when to recompute. */
@@ -514,6 +538,18 @@ public final class ClarityConfig {
 
         eq = readEq(section(o, "eq"));
 
+        JsonObject h = section(o, "harshness_tamer");
+        Tamer td = DEFAULT_TAMER;
+        tamer = new Tamer(
+                bool(h, "enabled", td.enabled()),
+                clamp(num(h, "freq_hz", td.freqHz()), 1000f, 12000f),
+                clamp(num(h, "q", td.q()), 0.3f, 4f),
+                clamp(num(h, "threshold_db", td.thresholdDb()), -10f, 20f),
+                clamp(num(h, "ratio", td.ratio()), 1f, 20f),
+                clamp(num(h, "max_cut_db", td.maxCutDb()), 0f, 24f),
+                clamp(num(h, "attack_ms", td.attackMs()), 0.1f, 50f),
+                clamp(num(h, "release_ms", td.releaseMs()), 5f, 1000f));
+
         Map<String, Float> mixLevels = floatMap(o, "category_mix", DEFAULT_MIX);
         for (Map.Entry<String, Float> def : DEFAULT_MIX.entrySet()) {
             if (mixLevels.putIfAbsent(def.getKey(), def.getValue()) == null) {
@@ -613,6 +649,21 @@ public final class ClarityConfig {
         j.addProperty("latency", c.latency().name());
         j.addProperty("lookahead_ms", c.lookaheadMs());
         o.add("compressor", j);
+
+        Tamer t = tamer;
+        JsonObject h = new JsonObject();
+        h.addProperty("_help", "Harshness tamer, after the EQ: turns down the band around freq_hz (width q: higher = narrower) "
+                + "only while that band stands out - when it is more than threshold_db above the rest of the sound. "
+                + "ratio: how hard it pushes back; max_cut_db: the most it ever takes out. Normal sounds pass untouched.");
+        h.addProperty("enabled", t.enabled());
+        h.addProperty("freq_hz", t.freqHz());
+        h.addProperty("q", t.q());
+        h.addProperty("threshold_db", t.thresholdDb());
+        h.addProperty("ratio", t.ratio());
+        h.addProperty("max_cut_db", t.maxCutDb());
+        h.addProperty("attack_ms", t.attackMs());
+        h.addProperty("release_ms", t.releaseMs());
+        o.add("harshness_tamer", h);
 
         JsonObject m = new JsonObject();
         m.addProperty("_help", "Level of each sound category when its slider is at 100% (1.0 = vanilla). "

@@ -21,6 +21,7 @@ public final class Compressor {
 
     private final float sampleRate;
     private final Equalizer eq;
+    public final HarshnessTamer tamer;
     private final LookaheadLimiter limiter;
     private float grDb;             // current gain reduction, <= 0
     private float masterGain = 1f;  // last block's master volume, ramped from to avoid zipper noise
@@ -34,6 +35,7 @@ public final class Compressor {
     public Compressor(float sampleRate) {
         this.sampleRate = sampleRate;
         this.eq = new Equalizer(sampleRate);
+        this.tamer = new HarshnessTamer(sampleRate);
         this.limiter = new LookaheadLimiter((int) Math.ceil(MAX_LOOKAHEAD_MS * 0.001 * sampleRate));
     }
 
@@ -64,6 +66,7 @@ public final class Compressor {
             limiter.setDelay(Math.round(p.lookaheadMs() * 0.001f * sampleRate));
         }
         boolean eqOn = eq.begin();
+        boolean tamerOn = tamer.begin();
 
         float peakIn = 0f, peakOut = 0f, deepestGr = 0f;
         for (int i = 0; i < frames; i++) {
@@ -106,6 +109,12 @@ public final class Compressor {
                 l = (float) eq.outL;
                 r = (float) eq.outR;
             }
+            // Harsh bands are tamed after the EQ, so a presence boost can't make a harsh sound worse.
+            if (tamerOn) {
+                tamer.process(l, r);
+                l = (float) tamer.outL;
+                r = (float) tamer.outR;
+            }
 
             if (limit) {
                 limiter.process(l, r, limiterRelease);
@@ -130,6 +139,9 @@ public final class Compressor {
         }
         if (eqOn) {
             eq.end();
+        }
+        if (tamerOn) {
+            tamer.end();
         }
         meterInDb = toDb(peakIn);
         meterOutDb = toDb(peakOut);

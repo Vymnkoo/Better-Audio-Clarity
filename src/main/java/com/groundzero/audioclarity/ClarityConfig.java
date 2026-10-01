@@ -76,11 +76,17 @@ public final class ClarityConfig {
             12.0f, 3.0422535f, 5.5f, true, Latency.LOW, 10f);
 
     /**
-     * Threshold = how far the band may stand above the rest of the sound. +6 dB is about the 95th
-     * percentile of vanilla sound effects (measured over 400 of them, through the default EQ), so
-     * ordinary sounds pass untouched and only piercing ones are tamed.
+     * Threshold = how far the band may stand above the rest of the sound. Calibrated on 400 vanilla
+     * sound effects (through the default EQ) and on a server recording: at +4 dB 87% of vanilla
+     * sounds are never touched, while the piercing moments of the recording (+5 to +8 dB) are.
      */
-    public static final Tamer DEFAULT_TAMER = new Tamer(true, 3500f, 1.0f, 6f, 4f, 8f, 2f, 80f);
+    public static final Tamer DEFAULT_TAMER = new Tamer(true, 3500f, 1.0f, 4f, 4f, 8f, 2f, 80f);
+
+    /**
+     * The second band: sizzle around 10 kHz - coin sounds and the like. Vanilla sounds rarely put
+     * that band above the rest (95th percentile +1.9 dB), server coins reach +6 to +9 dB.
+     */
+    public static final Tamer DEFAULT_SIZZLE = new Tamer(true, 10000f, 1.2f, 3f, 6f, 10f, 1f, 60f);
 
     /**
      * Against Minecraft's dark, muffled tone: clear sub rumble, take a little mud out of the
@@ -189,6 +195,7 @@ public final class ClarityConfig {
     private static volatile Compressor compressor = DEFAULT_COMPRESSOR;
     private static volatile Eq eq = DEFAULT_EQ;
     private static volatile Tamer tamer = DEFAULT_TAMER;
+    private static volatile Tamer sizzle = DEFAULT_SIZZLE;
     private static volatile Map<String, Float> mix = DEFAULT_MIX;
     private static volatile Map<String, Float> sounds = DEFAULT_SOUNDS;
     private static volatile boolean soundGroups = hasGroups(DEFAULT_SOUNDS);
@@ -287,6 +294,42 @@ public final class ClarityConfig {
 
     public static void setTamer(Tamer t) {
         tamer = t;
+    }
+
+    public static Tamer sizzle() {
+        return sizzle;
+    }
+
+    public static void setSizzle(Tamer t) {
+        sizzle = t;
+    }
+
+    private static Tamer readTamer(JsonObject h, Tamer td) {
+        return new Tamer(
+                bool(h, "enabled", td.enabled()),
+                clamp(num(h, "freq_hz", td.freqHz()), 1000f, 16000f),
+                clamp(num(h, "q", td.q()), 0.3f, 4f),
+                clamp(num(h, "threshold_db", td.thresholdDb()), -10f, 20f),
+                clamp(num(h, "ratio", td.ratio()), 1f, 20f),
+                clamp(num(h, "max_cut_db", td.maxCutDb()), 0f, 24f),
+                clamp(num(h, "attack_ms", td.attackMs()), 0.1f, 50f),
+                clamp(num(h, "release_ms", td.releaseMs()), 5f, 1000f));
+    }
+
+    private static JsonObject writeTamer(Tamer t, String name) {
+        JsonObject h = new JsonObject();
+        h.addProperty("_help", name + ", after the EQ: turns down the band around freq_hz (width q: higher = narrower) "
+                + "only while that band stands out - when it is more than threshold_db above the rest of the sound. "
+                + "ratio: how hard it pushes back; max_cut_db: the most it ever takes out. Normal sounds pass untouched.");
+        h.addProperty("enabled", t.enabled());
+        h.addProperty("freq_hz", t.freqHz());
+        h.addProperty("q", t.q());
+        h.addProperty("threshold_db", t.thresholdDb());
+        h.addProperty("ratio", t.ratio());
+        h.addProperty("max_cut_db", t.maxCutDb());
+        h.addProperty("attack_ms", t.attackMs());
+        h.addProperty("release_ms", t.releaseMs());
+        return h;
     }
 
     /** A new object whenever the settings change, so the EQ can tell when to recompute. */
@@ -538,17 +581,8 @@ public final class ClarityConfig {
 
         eq = readEq(section(o, "eq"));
 
-        JsonObject h = section(o, "harshness_tamer");
-        Tamer td = DEFAULT_TAMER;
-        tamer = new Tamer(
-                bool(h, "enabled", td.enabled()),
-                clamp(num(h, "freq_hz", td.freqHz()), 1000f, 12000f),
-                clamp(num(h, "q", td.q()), 0.3f, 4f),
-                clamp(num(h, "threshold_db", td.thresholdDb()), -10f, 20f),
-                clamp(num(h, "ratio", td.ratio()), 1f, 20f),
-                clamp(num(h, "max_cut_db", td.maxCutDb()), 0f, 24f),
-                clamp(num(h, "attack_ms", td.attackMs()), 0.1f, 50f),
-                clamp(num(h, "release_ms", td.releaseMs()), 5f, 1000f));
+        tamer = readTamer(section(o, "harshness_tamer"), DEFAULT_TAMER);
+        sizzle = readTamer(section(o, "sizzle_tamer"), DEFAULT_SIZZLE);
 
         Map<String, Float> mixLevels = floatMap(o, "category_mix", DEFAULT_MIX);
         for (Map.Entry<String, Float> def : DEFAULT_MIX.entrySet()) {
@@ -650,20 +684,8 @@ public final class ClarityConfig {
         j.addProperty("lookahead_ms", c.lookaheadMs());
         o.add("compressor", j);
 
-        Tamer t = tamer;
-        JsonObject h = new JsonObject();
-        h.addProperty("_help", "Harshness tamer, after the EQ: turns down the band around freq_hz (width q: higher = narrower) "
-                + "only while that band stands out - when it is more than threshold_db above the rest of the sound. "
-                + "ratio: how hard it pushes back; max_cut_db: the most it ever takes out. Normal sounds pass untouched.");
-        h.addProperty("enabled", t.enabled());
-        h.addProperty("freq_hz", t.freqHz());
-        h.addProperty("q", t.q());
-        h.addProperty("threshold_db", t.thresholdDb());
-        h.addProperty("ratio", t.ratio());
-        h.addProperty("max_cut_db", t.maxCutDb());
-        h.addProperty("attack_ms", t.attackMs());
-        h.addProperty("release_ms", t.releaseMs());
-        o.add("harshness_tamer", h);
+        o.add("harshness_tamer", writeTamer(tamer, "Harshness tamer, presence band"));
+        o.add("sizzle_tamer", writeTamer(sizzle, "Harshness tamer, sizzle band (coins and other bright sounds)"));
 
         JsonObject m = new JsonObject();
         m.addProperty("_help", "Level of each sound category when its slider is at 100% (1.0 = vanilla). "

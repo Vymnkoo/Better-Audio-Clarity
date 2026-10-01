@@ -21,7 +21,8 @@ public final class Compressor {
 
     private final float sampleRate;
     private final Equalizer eq;
-    public final HarshnessTamer tamer;
+    public final HarshnessTamer tamer;     // presence band (~3.5 kHz)
+    public final HarshnessTamer sizzle;    // sizzle band (~10 kHz)
     private final LookaheadLimiter limiter;
     private float grDb;             // current gain reduction, <= 0
     private float masterGain = 1f;  // last block's master volume, ramped from to avoid zipper noise
@@ -35,7 +36,8 @@ public final class Compressor {
     public Compressor(float sampleRate) {
         this.sampleRate = sampleRate;
         this.eq = new Equalizer(sampleRate);
-        this.tamer = new HarshnessTamer(sampleRate);
+        this.tamer = new HarshnessTamer(sampleRate, ClarityConfig::tamer);
+        this.sizzle = new HarshnessTamer(sampleRate, ClarityConfig::sizzle);
         this.limiter = new LookaheadLimiter((int) Math.ceil(MAX_LOOKAHEAD_MS * 0.001 * sampleRate));
     }
 
@@ -67,6 +69,7 @@ public final class Compressor {
         }
         boolean eqOn = eq.begin();
         boolean tamerOn = tamer.begin();
+        boolean sizzleOn = sizzle.begin();
 
         float peakIn = 0f, peakOut = 0f, deepestGr = 0f;
         for (int i = 0; i < frames; i++) {
@@ -115,6 +118,11 @@ public final class Compressor {
                 l = (float) tamer.outL;
                 r = (float) tamer.outR;
             }
+            if (sizzleOn) {
+                sizzle.process(l, r);
+                l = (float) sizzle.outL;
+                r = (float) sizzle.outR;
+            }
 
             if (limit) {
                 limiter.process(l, r, limiterRelease);
@@ -142,6 +150,9 @@ public final class Compressor {
         }
         if (tamerOn) {
             tamer.end();
+        }
+        if (sizzleOn) {
+            sizzle.end();
         }
         meterInDb = toDb(peakIn);
         meterOutDb = toDb(peakOut);

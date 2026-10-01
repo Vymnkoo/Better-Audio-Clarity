@@ -25,7 +25,10 @@ public class HarshnessScreen extends TabbedScreen {
     private static final int ROW = 24;
     private static final float BAND_MIN = -10f, BAND_MAX = 20f;
 
-    private Tamer t = ClarityConfig.tamer();
+    /** Which band the controls edit: 0 = presence (~3.5 kHz), 1 = sizzle (~10 kHz). Kept while the game runs. */
+    private static int band;
+
+    private Tamer t = settings();
     private float shownBand = BAND_MIN, shownCut;
     private long lastFrame = System.nanoTime();
 
@@ -36,15 +39,21 @@ public class HarshnessScreen extends TabbedScreen {
     @Override
     protected void init() {
         addTabs();
-        t = ClarityConfig.tamer();
+        t = settings();
         int left = width / 2 - SLIDER_W - 5;
         int right = width / 2 + 5;
         int y = TOP;
+        // Not a tuning control: switching which band is shown changes nothing, so it is never locked.
+        addRenderableWidget(Button.builder(bandLabel(), b -> {
+            band = 1 - band;
+            rebuildWidgets();
+        }).bounds(left, y, SLIDER_W * 2 + 10, 20).build());
+        y += ROW;
         addTuning(Button.builder(enabledLabel(), b -> {
             update(new Tamer(!t.enabled(), t.freqHz(), t.q(), t.thresholdDb(), t.ratio(), t.maxCutDb(), t.attackMs(), t.releaseMs()));
             b.setMessage(enabledLabel());
         }).bounds(left, y, SLIDER_W, 20).build());
-        addTuning(new Slider(right, y, "Frequency", 1000f, 12000f, true, t.freqHz(),
+        addTuning(new Slider(right, y, "Frequency", 1000f, 16000f, true, t.freqHz(),
                 v -> v < 10000 ? fmt("%.2f kHz", v / 1000f) : fmt("%.1f kHz", v / 1000f),
                 (q, v) -> new Tamer(q.enabled(), v, q.q(), q.thresholdDb(), q.ratio(), q.maxCutDb(), q.attackMs(), q.releaseMs())));
         y += ROW;
@@ -64,37 +73,49 @@ public class HarshnessScreen extends TabbedScreen {
                 (q, v) -> new Tamer(q.enabled(), q.freqHz(), q.q(), q.thresholdDb(), q.ratio(), q.maxCutDb(), q.attackMs(), v)));
 
         addRenderableWidget(Button.builder(Component.literal("Reset to defaults"), b -> {
-            update(ClarityConfig.DEFAULT_TAMER);
+            update(band == 0 ? ClarityConfig.DEFAULT_TAMER : ClarityConfig.DEFAULT_SIZZLE);
             rebuildWidgets();
         }).bounds(left, height - 28, SLIDER_W, 20).build());
         addRenderableWidget(Button.builder(Component.literal("Done"), b -> onClose()).bounds(right, height - 28, SLIDER_W, 20).build());
     }
 
+    private static Tamer settings() {
+        return band == 0 ? ClarityConfig.tamer() : ClarityConfig.sizzle();
+    }
+
     private void update(Tamer next) {
         t = next;
-        ClarityConfig.setTamer(next);
+        if (band == 0) {
+            ClarityConfig.setTamer(next);
+        } else {
+            ClarityConfig.setSizzle(next);
+        }
+    }
+
+    private static Component bandLabel() {
+        return Component.literal(band == 0 ? "Band: Presence (harsh, ~3.5 kHz)  >" : "Band: Sizzle (coins, ~10 kHz)  >");
     }
 
     private Component enabledLabel() {
-        return Component.literal("Harshness tamer: " + (t.enabled() ? "ON" : "OFF"));
+        return Component.literal("This band: " + (t.enabled() ? "ON" : "OFF"));
     }
 
     @Override
     public void extractRenderState(GuiGraphicsExtractor g, int mouseX, int mouseY, float partialTick) {
         super.extractRenderState(g, mouseX, mouseY, partialTick);
         MasterBus bus = MasterBus.active();
-        HarshnessTamer tamer = bus != null ? bus.compressor().tamer : null;
+        HarshnessTamer tamer = bus == null ? null : band == 0 ? bus.compressor().tamer : bus.compressor().sizzle;
         long now = System.nanoTime();
         float dt = Math.min(0.1f, (now - lastFrame) / 1e9f);
         lastFrame = now;
-        float band = tamer != null && t.enabled() ? tamer.meterBandDb : BAND_MIN;
+        float level = tamer != null && t.enabled() ? tamer.meterBandDb : BAND_MIN;
         float cut = tamer != null && t.enabled() ? tamer.meterCutDb : 0f;
-        shownBand = Math.max(band, shownBand - 20f * dt);
+        shownBand = Math.max(level, shownBand - 20f * dt);
         shownCut = Math.min(cut, shownCut + 20f * dt);
 
         int x = width / 2 - SLIDER_W - 5;
         int w = SLIDER_W * 2 + 10;
-        int y = TOP + ROW * 4 + 6;
+        int y = TOP + ROW * 5 + 6;
         int labelW = 34;
         int bx = x + labelW;
         int bw = w - labelW - 52;

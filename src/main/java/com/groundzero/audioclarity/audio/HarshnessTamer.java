@@ -35,13 +35,17 @@ public final class HarshnessTamer {
 
     public double outL, outR;
 
-    public HarshnessTamer(float sampleRate) {
+    private final java.util.function.Supplier<ClarityConfig.Tamer> settings;
+
+    /** @param settings which band this tamer follows (ClarityConfig::tamer or ClarityConfig::sizzle) */
+    public HarshnessTamer(float sampleRate, java.util.function.Supplier<ClarityConfig.Tamer> settings) {
         this.sampleRate = sampleRate;
+        this.settings = settings;
     }
 
     /** Once per block. Returns false when the tamer is off (skip {@link #process}). */
     public boolean begin() {
-        ClarityConfig.Tamer t = ClarityConfig.tamer();
+        ClarityConfig.Tamer t = settings.get();
         if (t != applied) {
             configure(t);
         }

@@ -65,7 +65,7 @@ public final class ClarityConfig {
      * Tuned by ear by Vymnkoo, 2026-09-30 (1.2.0): a high threshold, so the compressor only
      * catches the loud moments and everyday sound keeps its dynamics.
      */
-    public static final Compressor DEFAULT_COMPRESSOR = new Compressor(true, -18.169014f, 2.0925527f, 49.729725f, 247.50362f,
+    public static final Compressor DEFAULT_COMPRESSOR = new Compressor(true, -15.669014f, 2.0925527f, 49.729725f, 247.50362f,
             12.0f, 3.0422535f, 5.5f, true, Latency.LOW, 10f);
 
     /**
@@ -78,19 +78,23 @@ public final class ClarityConfig {
             new Band("peak", 3500f, 2f, 0.9f),
             new Band("highshelf", 9000f, 3f, 0.707f)));
 
-    /** Level of each category at 100% on its slider (options.txt names). */
+    /**
+     * Level of each category at 100% on its slider (options.txt names). Raised 2.5 dB together
+     * with the compressor threshold on 2026-10-01, so the louder level the tuning was heard at
+     * sits at Output +5.5 dB (Master Volume 0.0 dB) and the compressor works exactly as tuned.
+     */
     static final Map<String, Float> DEFAULT_MIX = ordered(
-            "record", 0.3818687f,
-            "weather", 0.2339578f,
-            "block", 0.2719834f,
-            "hostile", 0.16901408f,
-            "neutral", 0.27f,
-            "player", 0.113389f,
-            "ambient", 0.32042253f,
-            "voice", 0.3732394f,
-            "ui", 0.5058152f,
-            "music", 0.14f,    // soft background music; it skips the compressor, so it stays at this level
-            "master", 0.27f);  // sounds servers play in the Master category (plugins): with the game, not 11 dB above it
+            "record", 0.5092301f,
+            "weather", 0.3119877f,
+            "block", 0.3626957f,
+            "hostile", 0.2253839f,
+            "neutral", 0.3600508f,
+            "player", 0.1512067f,
+            "ambient", 0.4272903f,
+            "voice", 0.4977227f,
+            "ui", 0.6745154f,
+            "music", 0.186693f,     // soft background music; it skips the compressor, so it stays at this level
+            "master", 0.3600508f);  // sounds servers play in the Master category (plugins): with the game, not 11 dB above it
 
     /** Per-sound adjustments in dB on top of the category mix. */
     static final Map<String, Float> DEFAULT_SOUNDS = ordered(

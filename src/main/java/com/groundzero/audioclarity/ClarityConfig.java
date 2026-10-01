@@ -116,7 +116,32 @@ public final class ClarityConfig {
             "minecraft:block.nether_sprouts.hit", -5.0f,
             "minecraft:block.nether_sprouts.fall", -5.0f,
             "minecraft:block.suspicious_gravel.*", -5.0f,
-            "minecraft:entity.zombified_piglin.ambient", -4.0f);   // the Nether's constant grunting
+            "minecraft:entity.zombified_piglin.ambient", -4.0f,    // the Nether's constant grunting
+            // Mobs, measured the same way with each mob's own code volume applied (cows, wolves...
+            // are already turned down in the game). Big and boss mobs keep their weight on purpose.
+            "minecraft:entity.cow.step", -9.0f,
+            "minecraft:entity.cow_moody.step", -9.0f,
+            "minecraft:entity.hoglin.step", -7.0f,
+            "minecraft:entity.donkey.death", -7.0f,
+            "minecraft:entity.mule.death", -7.0f,
+            "minecraft:entity.horse.hurt", -6.0f,
+            "minecraft:entity.horse.death", -6.0f,
+            "minecraft:entity.horse.eat", -6.0f,
+            "minecraft:entity.donkey.eat", -6.0f,
+            "minecraft:entity.mule.eat", -6.0f,
+            "minecraft:entity.polar_bear.ambient", -6.0f,
+            "minecraft:entity.polar_bear.hurt", -6.0f,
+            "minecraft:entity.polar_bear.step", -6.0f,
+            "minecraft:entity.blaze.ambient", -5.0f,
+            "minecraft:entity.ghast.hurt", -5.0f,
+            "minecraft:entity.guardian.ambient", -5.0f,
+            "minecraft:entity.shulker.ambient", -5.0f,
+            "minecraft:entity.wolf_big.pant", -5.0f,
+            "minecraft:entity.wolf_grumpy.pant", -5.0f,
+            "minecraft:entity.zoglin.step", -5.0f,
+            "minecraft:entity.donkey.angry", -5.0f,
+            "minecraft:entity.mule.angry", -5.0f,
+            "minecraft:entity.pig.step", -4.0f);
 
     public static final float MUTE_DB = -40f;
     private static final int MAX_BANDS = 10;

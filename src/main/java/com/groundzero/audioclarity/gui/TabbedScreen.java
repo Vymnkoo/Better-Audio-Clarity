@@ -24,14 +24,14 @@ import java.util.function.Function;
 abstract class TabbedScreen extends Screen {
 
     static final int TOP = 36;   // where a tab's content starts, under the tab bar
-    private static final int TAB_W = 100;
+    private static final int TAB_W = 110;
 
     /** Set once the player has confirmed they want to change the tuning (this game session only). */
     private static boolean tuningUnlocked;
 
     private enum Tab {
         GENERAL("General", SettingsScreen.class, SettingsScreen::new),
-        COMPRESSOR("Dynamics", CompressorScreen.class, CompressorScreen::new),
+        COMPRESSOR("Dynamics (Comp)", CompressorScreen.class, CompressorScreen::new),
         GAINS("Gains", GainsScreen.class, GainsScreen::new);
 
         final String label;

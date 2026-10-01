@@ -14,11 +14,11 @@ import java.util.List;
 import java.util.function.Function;
 
 /**
- * The settings screens share one tab bar at the top: General, Compressor and Gains. Switching
+ * The settings screens share one tab bar at the top: General, Dynamics (the compressor) and Gains. Switching
  * tabs saves and opens the other tab over the same parent, so Done always goes back to where
  * the settings were opened from. Every change is heard at once.
  *
- * <p>The tuning controls (Compressor and Gains) start greyed out. Clicking one asks first, since
+ * <p>The tuning controls (Dynamics and Gains) start greyed out. Clicking one asks first, since
  * they change how the mod sounds; after a yes they stay unlocked until the game restarts.
  */
 abstract class TabbedScreen extends Screen {
@@ -31,7 +31,7 @@ abstract class TabbedScreen extends Screen {
 
     private enum Tab {
         GENERAL("General", SettingsScreen.class, SettingsScreen::new),
-        COMPRESSOR("Compressor", CompressorScreen.class, CompressorScreen::new),
+        COMPRESSOR("Dynamics", CompressorScreen.class, CompressorScreen::new),
         GAINS("Gains", GainsScreen.class, GainsScreen::new);
 
         final String label;

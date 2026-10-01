@@ -1,6 +1,7 @@
 package com.groundzero.audioclarity.mixin;
 
-import com.groundzero.audioclarity.gui.CompressorScreen;
+import com.groundzero.audioclarity.gui.Screens;
+import com.groundzero.audioclarity.gui.SettingsScreen;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.options.OptionsSubScreen;
@@ -11,7 +12,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-/** A "Compressor..." button in the top-left corner of Music &amp; Sound: opens the settings on the Compressor tab. */
+/** A "Better Audio Clarity..." button in the top-left corner of Music &amp; Sound: opens the mod's settings. */
 @Mixin(OptionsSubScreen.class)
 public abstract class SoundOptionsCompressorButtonMixin extends Screen {
 
@@ -20,11 +21,12 @@ public abstract class SoundOptionsCompressorButtonMixin extends Screen {
     }
 
     @Inject(method = "init", at = @At("TAIL"))
-    private void audioclarity$compressorButton(CallbackInfo ci) {
+    private void audioclarity$settingsButton(CallbackInfo ci) {
         if ((Object) this instanceof SoundOptionsScreen) {
             Screen self = this;
-            addRenderableWidget(Button.builder(Component.literal("Compressor..."),
-                    b -> com.groundzero.audioclarity.gui.Screens.open(new CompressorScreen(self))).bounds(6, 6, 90, 20).build());
+            Component label = Component.literal("Better Audio Clarity...");
+            addRenderableWidget(Button.builder(label, b -> Screens.open(new SettingsScreen(self)))
+                    .bounds(6, 6, font.width(label) + 12, 20).build());
         }
     }
 }

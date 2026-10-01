@@ -79,7 +79,6 @@ The everyday settings (Output and the on/off switches) are in **Mod Menu** (opti
 - Voice chat mods (Simple Voice Chat, Plasmo Voice) open their own OpenAL device, so voice doesn't go through the chain.
 - Tested on Hypixel and mcpvp.com (through ViaFabricPlus).
 - Mod Menu is optional: with it, the mod gets a settings screen in the mod list.
-- Not compatible with Emberwild AutoTune, which hooks the same code. `fabric.mod.json` declares this.
 
 ## Building
 

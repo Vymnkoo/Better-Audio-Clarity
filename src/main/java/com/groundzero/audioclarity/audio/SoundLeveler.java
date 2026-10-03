@@ -14,10 +14,12 @@ import java.util.Map;
 import static com.groundzero.audioclarity.AudioClarity.LOGGER;
 
 /**
- * Sound leveling (part of the Loud mix): pulls each sound part of the way toward a common level
- * before it reaches the compressor, so one huge sound (TNT) no longer drags the whole mix down
- * and quiet ones sit a little closer. Loud sounds stay louder - a sound 20 dB above the
- * reference at 40% leveling comes down 8 dB and is still 12 dB above it.
+ * Loud-sound taming: turns down only the sounds that play far above the typical vanilla sound -
+ * TNT, level-ups, totems - before they reach the compressor, so they stay the big hits without
+ * towering over the game or slamming the compressor and limiter. A sound more than
+ * {@link ClarityConfig#LOUD_SOUND_THRESHOLD_DB} above the reference loses this share of the
+ * excess: at 50%, TNT (about 15.6 dB above) comes down about 4.8 dB and is still about 10.8 dB
+ * louder than a normal sound. Normal and quiet sounds are never touched.
  *
  * <p>Each vanilla sound file's loudness was measured offline (assets/.../loudness.tsv, EBU R128
  * max momentary); the level a sound actually plays at is that plus the volume the game asks for
@@ -28,16 +30,15 @@ public final class SoundLeveler {
 
     /** The median vanilla sound effect file, played at full volume. */
     private static final double REFERENCE_DB = -25.6;
-    private static final double MAX_CUT_DB = 10;
-    private static final double MAX_LIFT_DB = 4;   // quiet stays fairly quiet: caves must not fill up
+    private static final double MAX_CUT_DB = 12;
 
     private static volatile Map<String, Float> table;
 
     private SoundLeveler() {}
 
-    /** Linear gain for this sound; 1 when leveling is off or the sound is unknown. */
+    /** Linear gain for this sound; 1 when taming is off, the sound isn't loud or is unknown. */
     public static float gain(SoundInstance instance) {
-        float amount = ClarityConfig.soundLeveling();
+        float amount = ClarityConfig.loudTaming();
         if (amount <= 0f) {
             return 1f;
         }
@@ -50,9 +51,11 @@ public final class SoundLeveler {
             return 1f;
         }
         double asked = Math.max(1e-3, Math.min(1.0, instance.getVolume()));   // OpenAL caps gain at 1
-        double plays = file + 20 * Math.log10(asked);
-        double offset = Math.max(-MAX_CUT_DB, Math.min(MAX_LIFT_DB, -amount * (plays - REFERENCE_DB)));
-        return (float) Math.pow(10, offset / 20);
+        double excess = file + 20 * Math.log10(asked) - (REFERENCE_DB + ClarityConfig.LOUD_SOUND_THRESHOLD_DB);
+        if (excess <= 0) {
+            return 1f;
+        }
+        return (float) Math.pow(10, -Math.min(MAX_CUT_DB, amount * excess) / 20);
     }
 
     private static Map<String, Float> table() {
@@ -68,7 +71,7 @@ public final class SoundLeveler {
         Map<String, Float> m = new HashMap<>(8192);
         try (InputStream in = SoundLeveler.class.getResourceAsStream("/assets/better_audio_clarity/loudness.tsv")) {
             if (in == null) {
-                LOGGER.warn("loudness.tsv missing - sound leveling is off");
+                LOGGER.warn("loudness.tsv missing - loud-sound taming is off");
                 return m;
             }
             BufferedReader r = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8));
@@ -80,7 +83,7 @@ public final class SoundLeveler {
                 m.put(line.substring(0, tab), Float.parseFloat(line.substring(tab + 1)));
             }
         } catch (Exception e) {
-            LOGGER.warn("Could not read loudness.tsv - sound leveling is off: {}", e.toString());
+            LOGGER.warn("Could not read loudness.tsv - loud-sound taming is off: {}", e.toString());
         }
         return m;
     }

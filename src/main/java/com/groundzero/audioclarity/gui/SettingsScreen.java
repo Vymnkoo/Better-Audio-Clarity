@@ -35,13 +35,6 @@ public class SettingsScreen extends TabbedScreen {
         addRenderableWidget(new OutputSlider(left, y));
         y += ROW;
         addRenderableWidget(new InGameMusicSlider(left, y));
-        y += ROW;
-        // Natural <-> Loud; from Custom (hand-tuned in the Dynamics tab) it goes back to Natural.
-        addRenderableWidget(Button.builder(mixLabel(), b -> {
-            ClarityConfig.applyMixPreset(ClarityConfig.mixPreset() == ClarityConfig.MixPreset.NATURAL
-                    ? ClarityConfig.MixPreset.LOUD : ClarityConfig.MixPreset.NATURAL);
-            b.setMessage(mixLabel());
-        }).bounds(left, y, W, 20).build());
         y += ROW + 6;
         toggle(left, y, "Compressor", () -> ClarityConfig.compressor().enabled(), ClarityConfig::setCompressorEnabled);
         toggle(right, y, "EQ", () -> ClarityConfig.eq().enabled(), ClarityConfig::setEqEnabled);
@@ -63,14 +56,6 @@ public class SettingsScreen extends TabbedScreen {
         }).bounds(x, y, HALF, 20).build());
     }
 
-    private static Component mixLabel() {
-        return Component.literal(switch (ClarityConfig.mixPreset()) {
-            case NATURAL -> "Mix: Natural (full dynamics)";
-            case LOUD -> "Mix: Loud (sounds leveled, louder)";
-            case CUSTOM -> "Mix: Custom (tuned in Dynamics) - click for Natural";
-        });
-    }
-
     private static Component label(String name, boolean on) {
         return Component.literal(name + ": " + (on ? "ON" : "OFF"));
     }
@@ -78,11 +63,10 @@ public class SettingsScreen extends TabbedScreen {
     @Override
     public void extractRenderState(GuiGraphicsExtractor g, int mouseX, int mouseY, float partialTick) {
         super.extractRenderState(g, mouseX, mouseY, partialTick);
-        int y = TOP + 4 + ROW * 6 + 16;
+        int y = TOP + 4 + ROW * 5 + 16;
         g.centeredText(font, "Output = overall volume of the finished mix. 0 dB = as tuned; raise it for quiet headphones.", width / 2, y, 0xFFA0A0A0);
         g.centeredText(font, "Music in game = how much the music fades down once you're in a world or on a server.", width / 2, y + 12, 0xFFA0A0A0);
-        g.centeredText(font, "Mix: Natural keeps every sound as it is; Loud levels them closer together and plays louder.", width / 2, y + 24, 0xFFA0A0A0);
-        g.centeredText(font, "Everything is saved in config/better-audio-clarity.json", width / 2, y + 36, 0xFF808080);
+        g.centeredText(font, "Everything is saved in config/better-audio-clarity.json", width / 2, y + 24, 0xFF808080);
     }
 
     /** How much quieter music plays in a world than in the menus, 0 to -24 dB in 0.5 dB steps. */

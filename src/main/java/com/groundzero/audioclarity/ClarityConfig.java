@@ -76,47 +76,13 @@ public final class ClarityConfig {
             12.0f, 3.0422535f, 5.5f, true, Latency.LOW, 10f);
 
     /**
-     * The "Loud" mix preset, tuned by ear by Vymnkoo on 2026-10-03 with a large TNT batch: a bus
-     * compressor clamps the whole mix down under many explosions and makes it underwhelming, so
-     * Loud doesn't compress at all (ratio 1:1). Sound leveling (55%) evens the sounds out one by
-     * one instead, and 3.5 dB more make-up than Natural pushes the result into the lookahead
-     * limiter, which only catches stray peaks. Output (the Master Volume) is left as the player set it.
+     * Loud-sound taming (SoundLeveler), part of the one Natural mix since 2026-10-03: sounds that
+     * play more than LOUD_SOUND_THRESHOLD_DB above the typical vanilla sound are turned down by
+     * this share of the excess, so TNT and the like stay the big hits without towering over the
+     * game (and without slamming the compressor and limiter). Normal and quiet sounds are untouched.
      */
-    public static final Compressor LOUD_COMPRESSOR = new Compressor(true, -28f, 1.0f, 25f, 150f,
-            10f, 6.5f, 5.5f, true, Latency.LOW, 10f);
-
-    /** How far Loud pulls each sound toward a common level (SoundLeveler): 0.55 = 55% of the way. */
-    public static final float LOUD_LEVELING = 0.55f;
-
-    public enum MixPreset { NATURAL, LOUD, CUSTOM }
-
-    /** Which preset the compressor matches (Output, latency and on/off don't count). */
-    public static MixPreset mixPreset() {
-        Compressor c = compressor;
-        if (sameShape(c, DEFAULT_COMPRESSOR) && near(soundLeveling, 0f)) {
-            return MixPreset.NATURAL;
-        }
-        return sameShape(c, LOUD_COMPRESSOR) && near(soundLeveling, LOUD_LEVELING) ? MixPreset.LOUD : MixPreset.CUSTOM;
-    }
-
-    /** Applies a preset's compressor shape, keeping the player's Output, latency and on/off. */
-    public static synchronized void applyMixPreset(MixPreset preset) {
-        Compressor p = preset == MixPreset.LOUD ? LOUD_COMPRESSOR : DEFAULT_COMPRESSOR;
-        Compressor c = compressor;
-        compressor = new Compressor(c.enabled(), p.thresholdDb(), p.ratio(), p.attackMs(), p.releaseMs(), p.kneeDb(),
-                p.makeupDb(), c.outputDb(), p.limiter(), c.latency(), p.lookaheadMs());
-        soundLeveling = preset == MixPreset.LOUD ? LOUD_LEVELING : 0f;
-    }
-
-    private static boolean sameShape(Compressor a, Compressor b) {
-        return near(a.thresholdDb(), b.thresholdDb()) && near(a.ratio(), b.ratio()) && near(a.attackMs(), b.attackMs())
-                && near(a.releaseMs(), b.releaseMs()) && near(a.kneeDb(), b.kneeDb()) && near(a.makeupDb(), b.makeupDb())
-                && a.limiter() == b.limiter() && near(a.lookaheadMs(), b.lookaheadMs());
-    }
-
-    private static boolean near(float a, float b) {
-        return Math.abs(a - b) < 0.05f;
-    }
+    public static final float DEFAULT_LOUD_TAMING = 0.5f;
+    public static final float LOUD_SOUND_THRESHOLD_DB = 6f;
 
     /**
      * Threshold = how far the band may stand above the rest of the sound. Calibrated on 400 vanilla
@@ -239,7 +205,7 @@ public final class ClarityConfig {
     private static volatile Compressor compressor = DEFAULT_COMPRESSOR;
     private static volatile Eq eq = DEFAULT_EQ;
     private static volatile Tamer tamer = DEFAULT_TAMER;
-    private static volatile float soundLeveling;
+    private static volatile float loudTaming = DEFAULT_LOUD_TAMING;
     private static volatile Tamer sizzle = DEFAULT_SIZZLE;
     private static volatile Map<String, Float> mix = DEFAULT_MIX;
     private static volatile Map<String, Float> sounds = DEFAULT_SOUNDS;
@@ -341,13 +307,13 @@ public final class ClarityConfig {
         tamer = t;
     }
 
-    /** 0 = off (Natural); see SoundLeveler. */
-    public static float soundLeveling() {
-        return soundLeveling;
+    /** Share of a loud sound's excess that is taken off (0 = off, 0.5 = half); see SoundLeveler. */
+    public static float loudTaming() {
+        return loudTaming;
     }
 
-    public static void setSoundLeveling(float amount) {
-        soundLeveling = clamp(amount, 0f, 1f);
+    public static void setLoudTaming(float amount) {
+        loudTaming = clamp(amount, 0f, 1f);
     }
 
     public static Tamer sizzle() {
@@ -647,7 +613,7 @@ public final class ClarityConfig {
 
         tamer = readTamer(section(o, "harshness_tamer"), DEFAULT_TAMER);
         sizzle = readTamer(section(o, "sizzle_tamer"), DEFAULT_SIZZLE);
-        soundLeveling = clamp(num(o, "sound_leveling", 0f), 0f, 1f);
+        loudTaming = clamp(num(o, "loud_sound_taming", DEFAULT_LOUD_TAMING), 0f, 1f);
 
         Map<String, Float> mixLevels = floatMap(o, "category_mix", DEFAULT_MIX);
         for (Map.Entry<String, Float> def : DEFAULT_MIX.entrySet()) {
@@ -752,7 +718,7 @@ public final class ClarityConfig {
 
         o.add("harshness_tamer", writeTamer(tamer, "Harshness tamer, presence band"));
         o.add("sizzle_tamer", writeTamer(sizzle, "Harshness tamer, sizzle band (coins and other bright sounds)"));
-        o.addProperty("sound_leveling", soundLeveling);
+        o.addProperty("loud_sound_taming", loudTaming);
 
         JsonObject m = new JsonObject();
         m.addProperty("_help", "Level of each sound category when its slider is at 100% (1.0 = vanilla). "

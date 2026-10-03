@@ -44,7 +44,7 @@ public class GainsScreen extends TabbedScreen {
             addTuning(new MixSlider(x, y, category));
             i++;
         }
-        // Sound leveling (part of the Loud mix) sits in the next free slot.
+        // Loud-sound taming sits in the next free slot.
         addTuning(new LevelingSlider(i % 2 == 0 ? left : right, TOP + (i / 2) * ROW));
         // The per-sound list pages when it doesn't fit above the buttons.
         int n = ClarityConfig.soundAdjustments().size();
@@ -133,10 +133,10 @@ public class GainsScreen extends TabbedScreen {
     }
 
     /** A category's level, 0-100% in 0.1% steps, shown with its gain in dB. */
-    /** How far each sound is pulled toward a common level (SoundLeveler), 0-100%. */
+    /** How much of a loud sound's excess is taken off (SoundLeveler), 0-100%. */
     private static class LevelingSlider extends AbstractSliderButton {
         LevelingSlider(int x, int y) {
-            super(x, y, SLIDER_W, 20, Component.empty(), ClarityConfig.soundLeveling());
+            super(x, y, SLIDER_W, 20, Component.empty(), ClarityConfig.loudTaming());
             updateMessage();
         }
 
@@ -146,12 +146,12 @@ public class GainsScreen extends TabbedScreen {
 
         @Override
         protected void updateMessage() {
-            setMessage(Component.literal(amount() == 0f ? "Leveling: off" : String.format(Locale.ROOT, "Leveling: %.0f%%", amount() * 100f)));
+            setMessage(Component.literal(amount() == 0f ? "Tame loud sounds: off" : String.format(Locale.ROOT, "Tame loud sounds: %.0f%%", amount() * 100f)));
         }
 
         @Override
         protected void applyValue() {
-            ClarityConfig.setSoundLeveling(amount());
+            ClarityConfig.setLoudTaming(amount());
         }
     }
 

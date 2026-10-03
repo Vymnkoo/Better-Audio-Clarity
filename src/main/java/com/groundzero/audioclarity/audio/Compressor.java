@@ -32,6 +32,8 @@ public final class Compressor {
     public volatile float meterInDb = SILENCE_DB;
     public volatile float meterOutDb = SILENCE_DB;
     public volatile float meterGrDb;
+    /** Deepest limiter reduction of the last block (dB, <= 0): how hard the safety limiter worked. */
+    public volatile float meterLimDb;
 
     public Compressor(float sampleRate) {
         this.sampleRate = sampleRate;
@@ -72,6 +74,7 @@ public final class Compressor {
         boolean sizzleOn = sizzle.begin();
 
         float peakIn = 0f, peakOut = 0f, deepestGr = 0f;
+        float deepestLim = 1f;
         for (int i = 0; i < frames; i++) {
             long at = address + ((long) i << 3);
             float l = MemoryUtil.memGetFloat(at);
@@ -126,6 +129,9 @@ public final class Compressor {
 
             if (limit) {
                 limiter.process(l, r, limiterRelease);
+                if (limiter.gain() < deepestLim) {
+                    deepestLim = limiter.gain();
+                }
                 l = limiter.outL;
                 r = limiter.outR;
             }
@@ -157,6 +163,7 @@ public final class Compressor {
         meterInDb = toDb(peakIn);
         meterOutDb = toDb(peakOut);
         meterGrDb = deepestGr;
+        meterLimDb = toDb(deepestLim);
     }
 
     /** One-pole smoothing coefficient for a time constant in milliseconds. */

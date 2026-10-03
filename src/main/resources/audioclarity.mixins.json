@@ -16,7 +16,9 @@
     "MusicSoundFooterMixin",
     "MinecraftTickMixin",
     "SoundOptionsCompressorButtonMixin",
-    "SoundOptionsOutputMixin"
+    "SoundOptionsOutputMixin",
+    "HudMeterMixin",
+    "GuiHudMeterMixin"
   ],
   "injectors": {
     "defaultRequire": 1

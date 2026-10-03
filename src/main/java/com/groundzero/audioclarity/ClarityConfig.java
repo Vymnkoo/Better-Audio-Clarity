@@ -69,13 +69,13 @@ public final class ClarityConfig {
     public static final Set<String> BAND_TYPES = Set.of("highpass", "lowpass", "lowshelf", "highshelf", "peak");
 
     /**
-     * A leveler, chosen by ear by Vymnkoo on 2026-10-03: low threshold and gentle 2:1 ratio, a
-     * 15 ms attack that takes the tops off hits and a slow 1.5 s release that rides the overall
-     * level instead of pumping. Simulated on a server recording against the earlier peak-catching
-     * tuning: quiet stretches +3.2 dB, overall +1.3 LU, the limiter busy only 0.14% of the time.
+     * A gentle leveler, tuned by ear by Vymnkoo on 2026-10-04: a very soft 1.33:1 ratio from
+     * -23 dB, a 15 ms attack that only takes the tops off hits and a slow 1.5 s release that rides
+     * the overall level without pumping. Output +2.9 dB is the 0.0 dB of the Master Volume slider;
+     * NORMAL latency (20 ms) for fewer dropouts on slower PCs.
      */
-    public static final Compressor DEFAULT_COMPRESSOR = new Compressor(true, -30f, 2f, 15f, 1500f,
-            12f, 8.5f, 5.5f, true, Latency.LOW, 10f);
+    public static final Compressor DEFAULT_COMPRESSOR = new Compressor(true, -23.239437f, 1.3295034f, 15f, 1500f,
+            12f, 3.7183099f, 2.8732395f, true, Latency.NORMAL, 10f);
 
     /**
      * Loud-sound taming (SoundLeveler), part of the one Natural mix since 2026-10-03: sounds that

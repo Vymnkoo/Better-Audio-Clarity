@@ -76,6 +76,44 @@ public final class ClarityConfig {
             12.0f, 3.0422535f, 5.5f, true, Latency.LOW, 10f);
 
     /**
+     * The "Loud" mix preset: a lower threshold and gentle ratio for a slightly flatter, denser mix,
+     * and 7 dB more make-up pushing it into the lookahead limiter. Simulated on a server
+     * recording: +4.8 LU louder than Natural, compressor 0.5 dB on average, limiter over 1 dB only
+     * 1% of the time (the odd explosion). Output (the Master Volume) is left as the player set it.
+     */
+    public static final Compressor LOUD_COMPRESSOR = new Compressor(true, -28f, 2.5f, 25f, 200f,
+            10f, 10f, 5.5f, true, Latency.LOW, 10f);
+
+    public enum MixPreset { NATURAL, LOUD, CUSTOM }
+
+    /** Which preset the compressor matches (Output, latency and on/off don't count). */
+    public static MixPreset mixPreset() {
+        Compressor c = compressor;
+        if (sameShape(c, DEFAULT_COMPRESSOR)) {
+            return MixPreset.NATURAL;
+        }
+        return sameShape(c, LOUD_COMPRESSOR) ? MixPreset.LOUD : MixPreset.CUSTOM;
+    }
+
+    /** Applies a preset's compressor shape, keeping the player's Output, latency and on/off. */
+    public static synchronized void applyMixPreset(MixPreset preset) {
+        Compressor p = preset == MixPreset.LOUD ? LOUD_COMPRESSOR : DEFAULT_COMPRESSOR;
+        Compressor c = compressor;
+        compressor = new Compressor(c.enabled(), p.thresholdDb(), p.ratio(), p.attackMs(), p.releaseMs(), p.kneeDb(),
+                p.makeupDb(), c.outputDb(), p.limiter(), c.latency(), p.lookaheadMs());
+    }
+
+    private static boolean sameShape(Compressor a, Compressor b) {
+        return near(a.thresholdDb(), b.thresholdDb()) && near(a.ratio(), b.ratio()) && near(a.attackMs(), b.attackMs())
+                && near(a.releaseMs(), b.releaseMs()) && near(a.kneeDb(), b.kneeDb()) && near(a.makeupDb(), b.makeupDb())
+                && a.limiter() == b.limiter() && near(a.lookaheadMs(), b.lookaheadMs());
+    }
+
+    private static boolean near(float a, float b) {
+        return Math.abs(a - b) < 0.05f;
+    }
+
+    /**
      * Threshold = how far the band may stand above the rest of the sound. Calibrated on 400 vanilla
      * sound effects (through the default EQ) and on a server recording: at +4 dB 87% of vanilla
      * sounds are never touched, while the piercing moments of the recording (+5 to +8 dB) are.

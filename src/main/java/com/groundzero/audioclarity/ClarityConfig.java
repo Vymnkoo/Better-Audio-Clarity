@@ -76,16 +76,17 @@ public final class ClarityConfig {
             12.0f, 3.0422535f, 5.5f, true, Latency.LOW, 10f);
 
     /**
-     * The "Loud" mix preset: a lower threshold and gentle ratio for a slightly flatter, denser mix,
-     * and 7 dB more make-up pushing it into the lookahead limiter. Simulated on a server
-     * recording: +4.8 LU louder than Natural, compressor 0.5 dB on average, limiter over 1 dB only
-     * 1% of the time (the odd explosion). Output (the Master Volume) is left as the player set it.
+     * The "Loud" mix preset, tuned by ear by Vymnkoo on 2026-10-03 with a large TNT batch: a bus
+     * compressor clamps the whole mix down under many explosions and makes it underwhelming, so
+     * Loud doesn't compress at all (ratio 1:1). Sound leveling (55%) evens the sounds out one by
+     * one instead, and 3.5 dB more make-up than Natural pushes the result into the lookahead
+     * limiter, which only catches stray peaks. Output (the Master Volume) is left as the player set it.
      */
-    public static final Compressor LOUD_COMPRESSOR = new Compressor(true, -28f, 2.5f, 25f, 150f,
-            10f, 10f, 5.5f, true, Latency.LOW, 10f);
+    public static final Compressor LOUD_COMPRESSOR = new Compressor(true, -28f, 1.0f, 25f, 150f,
+            10f, 6.5f, 5.5f, true, Latency.LOW, 10f);
 
-    /** How far Loud pulls each sound toward a common level (SoundLeveler): 0.4 = 40% of the way. */
-    public static final float LOUD_LEVELING = 0.4f;
+    /** How far Loud pulls each sound toward a common level (SoundLeveler): 0.55 = 55% of the way. */
+    public static final float LOUD_LEVELING = 0.55f;
 
     public enum MixPreset { NATURAL, LOUD, CUSTOM }
 

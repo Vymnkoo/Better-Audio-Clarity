@@ -65,7 +65,7 @@ public class SettingsScreen extends TabbedScreen {
     private static Component mixLabel() {
         return Component.literal(switch (ClarityConfig.mixPreset()) {
             case NATURAL -> "Mix: Natural (full dynamics)";
-            case LOUD -> "Mix: Loud (flatter, about 5 dB louder)";
+            case LOUD -> "Mix: Loud (sounds leveled, louder)";
             case CUSTOM -> "Mix: Custom (tuned in Dynamics) - click for Natural";
         });
     }
@@ -80,7 +80,7 @@ public class SettingsScreen extends TabbedScreen {
         int y = TOP + 4 + ROW * 6 + 16;
         g.centeredText(font, "Output = overall volume of the finished mix. 0 dB = as tuned; raise it for quiet headphones.", width / 2, y, 0xFFA0A0A0);
         g.centeredText(font, "Music in game = how much the music fades down once you're in a world or on a server.", width / 2, y + 12, 0xFFA0A0A0);
-        g.centeredText(font, "Mix: Natural keeps every quiet and loud moment; Loud evens them out and plays louder.", width / 2, y + 24, 0xFFA0A0A0);
+        g.centeredText(font, "Mix: Natural keeps every sound as it is; Loud levels them closer together and plays louder.", width / 2, y + 24, 0xFFA0A0A0);
         g.centeredText(font, "Everything is saved in config/better-audio-clarity.json", width / 2, y + 36, 0xFF808080);
     }
 

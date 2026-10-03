@@ -8,13 +8,12 @@ import net.minecraft.client.gui.GuiGraphicsExtractor;
 import java.util.Locale;
 
 /**
- * A small live meter in the top-left corner while playing (General tab: "Meter on HUD"): input,
+ * A small live meter in the top-right corner while playing (General tab: "Meter on HUD"): input,
  * compressor reduction, limiter reduction and output. Hidden with the HUD (F1) and while the
- * debug screen (F3) is open. Look only.
+ * debug screen (F3) is open; moves below the potion effect icons when there are any. Look only.
  */
 public final class HudMeter {
 
-    private static final int X = 4, Y = 4;
     private static final int LABEL_W = 22, BAR_W = 64, VALUE_W = 38, ROW = 9, BAR_H = 4;
 
     private static float shownIn = -60f, shownOut = -60f, shownGr, shownLim;
@@ -26,7 +25,7 @@ public final class HudMeter {
     public static void draw(GuiGraphicsExtractor g, boolean hudHidden) {
         Minecraft mc = Minecraft.getInstance();
         MasterBus bus = MasterBus.active();
-        if (!ClarityConfig.hudMeter() || hudHidden || bus == null || mc.getDebugOverlay().showDebugScreen()) {
+        if (!ClarityConfig.hudMeter() || hudHidden || bus == null || mc.debugEntries.isOverlayVisible()) {   // only the full F3 screen: single debug lines (FPS) may stay on
             return;
         }
         Compressor c = bus.compressor();
@@ -41,18 +40,20 @@ public final class HudMeter {
 
         Font font = mc.font;
         int w = LABEL_W + BAR_W + VALUE_W + 4;
-        g.fill(X - 2, Y - 2, X + w, Y + ROW * 4, 0x90000000);
-        row(g, font, 0, "IN", shownIn, -60f, false, 0xFF4CAF50);
-        row(g, font, 1, "GR", shownGr, -24f, true, 0xFFE53935);
-        row(g, font, 2, "LIM", shownLim, -12f, true, 0xFFFFA726);
-        row(g, font, 3, "OUT", shownOut, -60f, false, 0xFF42A5F5);
+        int x = mc.getWindow().getGuiScaledWidth() - w - 2;
+        int y = mc.player != null && !mc.player.getActiveEffects().isEmpty() ? 56 : 4;   // effect icons use the top 52 px
+        g.fill(x - 2, y - 2, x + w, y + ROW * 4, 0x90000000);
+        row(g, font, x, y, 0, "IN", shownIn, -60f, false, 0xFF4CAF50);
+        row(g, font, x, y, 1, "GR", shownGr, -24f, true, 0xFFE53935);
+        row(g, font, x, y, 2, "LIM", shownLim, -12f, true, 0xFFFFA726);
+        row(g, font, x, y, 3, "OUT", shownOut, -60f, false, 0xFF42A5F5);
     }
 
     /** One bar; reductions (GR, LIM) grow from the right like a gain-reduction meter. */
-    private static void row(GuiGraphicsExtractor g, Font font, int i, String label, float db, float min, boolean fromRight, int color) {
-        int y = Y + i * ROW;
-        int bx = X + LABEL_W;
-        g.text(font, label, X, y, 0xFFE0E0E0);
+    private static void row(GuiGraphicsExtractor g, Font font, int x0, int y0, int i, String label, float db, float min, boolean fromRight, int color) {
+        int y = y0 + i * ROW;
+        int bx = x0 + LABEL_W;
+        g.text(font, label, x0, y, 0xFFE0E0E0);
         g.fill(bx, y + 2, bx + BAR_W, y + 2 + BAR_H, 0xFF303030);
         float t = fromRight ? Math.max(0f, Math.min(1f, db / min)) : Math.max(0f, Math.min(1f, (db - min) / -min));
         int len = (int) (t * BAR_W);

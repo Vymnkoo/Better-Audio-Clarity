@@ -44,6 +44,8 @@ public class GainsScreen extends TabbedScreen {
             addTuning(new MixSlider(x, y, category));
             i++;
         }
+        // Sound leveling (part of the Loud mix) sits in the next free slot.
+        addTuning(new LevelingSlider(i % 2 == 0 ? left : right, TOP + (i / 2) * ROW));
         // The per-sound list pages when it doesn't fit above the buttons.
         int n = ClarityConfig.soundAdjustments().size();
         perColumn = Math.max(1, (height - 46 - listTop()) / LINE);
@@ -68,7 +70,7 @@ public class GainsScreen extends TabbedScreen {
     private int page, pages = 1, perColumn = 1;
 
     private int rows() {
-        return (ClarityConfig.mixLevels().size() + 1) / 2;
+        return (ClarityConfig.mixLevels().size() + 2) / 2;   // + the leveling slider
     }
 
     private int headingY() {
@@ -131,6 +133,28 @@ public class GainsScreen extends TabbedScreen {
     }
 
     /** A category's level, 0-100% in 0.1% steps, shown with its gain in dB. */
+    /** How far each sound is pulled toward a common level (SoundLeveler), 0-100%. */
+    private static class LevelingSlider extends AbstractSliderButton {
+        LevelingSlider(int x, int y) {
+            super(x, y, SLIDER_W, 20, Component.empty(), ClarityConfig.soundLeveling());
+            updateMessage();
+        }
+
+        private float amount() {
+            return Math.round((float) value * 20f) / 20f;   // 5% steps
+        }
+
+        @Override
+        protected void updateMessage() {
+            setMessage(Component.literal(amount() == 0f ? "Leveling: off" : String.format(Locale.ROOT, "Leveling: %.0f%%", amount() * 100f)));
+        }
+
+        @Override
+        protected void applyValue() {
+            ClarityConfig.setSoundLeveling(amount());
+        }
+    }
+
     private static class MixSlider extends AbstractSliderButton {
         private final String category;
 

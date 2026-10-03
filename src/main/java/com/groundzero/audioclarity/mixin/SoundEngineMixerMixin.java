@@ -119,7 +119,7 @@ public abstract class SoundEngineMixerMixin {
         if (sound != null) {
             audioclarity$starting = null; // once per play()
             float g = ClarityConfig.soundGain(sound.getIdentifier().toString(), sound.getSource().getName())
-                    * audioclarity$aroundGain(sound);
+                    * audioclarity$aroundGain(sound) * com.groundzero.audioclarity.audio.SoundLeveler.gain(sound);
             if (g != 1f) {
                 cir.setReturnValue(cir.getReturnValueF() * g);
             }
@@ -130,7 +130,7 @@ public abstract class SoundEngineMixerMixin {
             at = @At("RETURN"), cancellable = true)
     private void audioclarity$tickGain(SoundInstance sound, CallbackInfoReturnable<Float> cir) {
         float g = ClarityConfig.soundGain(sound.getIdentifier().toString(), sound.getSource().getName())
-                * audioclarity$aroundGain(sound);
+                * audioclarity$aroundGain(sound) * com.groundzero.audioclarity.audio.SoundLeveler.gain(sound);
         if (g != 1f) {
             cir.setReturnValue(cir.getReturnValueF() * g);
         }

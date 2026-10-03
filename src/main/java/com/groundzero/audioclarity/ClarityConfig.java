@@ -81,18 +81,21 @@ public final class ClarityConfig {
      * recording: +4.8 LU louder than Natural, compressor 0.5 dB on average, limiter over 1 dB only
      * 1% of the time (the odd explosion). Output (the Master Volume) is left as the player set it.
      */
-    public static final Compressor LOUD_COMPRESSOR = new Compressor(true, -28f, 2.5f, 25f, 200f,
+    public static final Compressor LOUD_COMPRESSOR = new Compressor(true, -28f, 2.5f, 25f, 150f,
             10f, 10f, 5.5f, true, Latency.LOW, 10f);
+
+    /** How far Loud pulls each sound toward a common level (SoundLeveler): 0.4 = 40% of the way. */
+    public static final float LOUD_LEVELING = 0.4f;
 
     public enum MixPreset { NATURAL, LOUD, CUSTOM }
 
     /** Which preset the compressor matches (Output, latency and on/off don't count). */
     public static MixPreset mixPreset() {
         Compressor c = compressor;
-        if (sameShape(c, DEFAULT_COMPRESSOR)) {
+        if (sameShape(c, DEFAULT_COMPRESSOR) && near(soundLeveling, 0f)) {
             return MixPreset.NATURAL;
         }
-        return sameShape(c, LOUD_COMPRESSOR) ? MixPreset.LOUD : MixPreset.CUSTOM;
+        return sameShape(c, LOUD_COMPRESSOR) && near(soundLeveling, LOUD_LEVELING) ? MixPreset.LOUD : MixPreset.CUSTOM;
     }
 
     /** Applies a preset's compressor shape, keeping the player's Output, latency and on/off. */
@@ -101,6 +104,7 @@ public final class ClarityConfig {
         Compressor c = compressor;
         compressor = new Compressor(c.enabled(), p.thresholdDb(), p.ratio(), p.attackMs(), p.releaseMs(), p.kneeDb(),
                 p.makeupDb(), c.outputDb(), p.limiter(), c.latency(), p.lookaheadMs());
+        soundLeveling = preset == MixPreset.LOUD ? LOUD_LEVELING : 0f;
     }
 
     private static boolean sameShape(Compressor a, Compressor b) {
@@ -233,6 +237,7 @@ public final class ClarityConfig {
     private static volatile Compressor compressor = DEFAULT_COMPRESSOR;
     private static volatile Eq eq = DEFAULT_EQ;
     private static volatile Tamer tamer = DEFAULT_TAMER;
+    private static volatile float soundLeveling;
     private static volatile Tamer sizzle = DEFAULT_SIZZLE;
     private static volatile Map<String, Float> mix = DEFAULT_MIX;
     private static volatile Map<String, Float> sounds = DEFAULT_SOUNDS;
@@ -332,6 +337,15 @@ public final class ClarityConfig {
 
     public static void setTamer(Tamer t) {
         tamer = t;
+    }
+
+    /** 0 = off (Natural); see SoundLeveler. */
+    public static float soundLeveling() {
+        return soundLeveling;
+    }
+
+    public static void setSoundLeveling(float amount) {
+        soundLeveling = clamp(amount, 0f, 1f);
     }
 
     public static Tamer sizzle() {
@@ -621,6 +635,7 @@ public final class ClarityConfig {
 
         tamer = readTamer(section(o, "harshness_tamer"), DEFAULT_TAMER);
         sizzle = readTamer(section(o, "sizzle_tamer"), DEFAULT_SIZZLE);
+        soundLeveling = clamp(num(o, "sound_leveling", 0f), 0f, 1f);
 
         Map<String, Float> mixLevels = floatMap(o, "category_mix", DEFAULT_MIX);
         for (Map.Entry<String, Float> def : DEFAULT_MIX.entrySet()) {
@@ -724,6 +739,7 @@ public final class ClarityConfig {
 
         o.add("harshness_tamer", writeTamer(tamer, "Harshness tamer, presence band"));
         o.add("sizzle_tamer", writeTamer(sizzle, "Harshness tamer, sizzle band (coins and other bright sounds)"));
+        o.addProperty("sound_leveling", soundLeveling);
 
         JsonObject m = new JsonObject();
         m.addProperty("_help", "Level of each sound category when its slider is at 100% (1.0 = vanilla). "

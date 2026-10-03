@@ -69,11 +69,13 @@ public final class ClarityConfig {
     public static final Set<String> BAND_TYPES = Set.of("highpass", "lowpass", "lowshelf", "highshelf", "peak");
 
     /**
-     * Tuned by ear by Vymnkoo, 2026-09-30 (1.2.0): a high threshold, so the compressor only
-     * catches the loud moments and everyday sound keeps its dynamics.
+     * A leveler, chosen by ear by Vymnkoo on 2026-10-03: low threshold and gentle 2:1 ratio, a
+     * 15 ms attack that takes the tops off hits and a slow 1.5 s release that rides the overall
+     * level instead of pumping. Simulated on a server recording against the earlier peak-catching
+     * tuning: quiet stretches +3.2 dB, overall +1.3 LU, the limiter busy only 0.14% of the time.
      */
-    public static final Compressor DEFAULT_COMPRESSOR = new Compressor(true, -15.669014f, 2.0925527f, 49.729725f, 247.50362f,
-            12.0f, 3.0422535f, 5.5f, true, Latency.LOW, 10f);
+    public static final Compressor DEFAULT_COMPRESSOR = new Compressor(true, -30f, 2f, 15f, 1500f,
+            12f, 8.5f, 5.5f, true, Latency.LOW, 10f);
 
     /**
      * Loud-sound taming (SoundLeveler), part of the one Natural mix since 2026-10-03: sounds that
@@ -81,7 +83,7 @@ public final class ClarityConfig {
      * this share of the excess, so TNT and the like stay the big hits without towering over the
      * game (and without slamming the compressor and limiter). Normal and quiet sounds are untouched.
      */
-    public static final float DEFAULT_LOUD_TAMING = 0.5f;
+    public static final float DEFAULT_LOUD_TAMING = 0.35f;   // by ear, together with the leveler
     public static final float LOUD_SOUND_THRESHOLD_DB = 6f;
 
     /**

@@ -18,7 +18,7 @@ import static com.groundzero.audioclarity.AudioClarity.LOGGER;
  * TNT, level-ups, totems - before they reach the compressor, so they stay the big hits without
  * towering over the game or slamming the compressor and limiter. A sound more than
  * {@link ClarityConfig#LOUD_SOUND_THRESHOLD_DB} above the reference loses this share of the
- * excess: at 50%, TNT (about 15.6 dB above) comes down about 4.8 dB and is still about 10.8 dB
+ * excess: at the default 35%, TNT (about 15.6 dB above) comes down about 3.4 dB and is still about 12.2 dB
  * louder than a normal sound. Normal and quiet sounds are never touched.
  *
  * <p>Each vanilla sound file's loudness was measured offline (assets/.../loudness.tsv, EBU R128

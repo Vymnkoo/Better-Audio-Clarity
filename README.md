@@ -118,6 +118,66 @@ Requirements:
 
 Output: `better-audio-clarity-<version>.jar`.
 
+## For developers
+
+A map for anyone forking or maintaining the mod. Package `com.groundzero.audioclarity`, mod id `better_audio_clarity`.
+
+### Where things are
+
+**Core**
+- `ClarityConfig` holds every setting and default (all tuned values live here). It loads and saves `config/better-audio-clarity.json`, re-reads the file when it changes (polled once a second), matches sound rules, and migrates old files (`config_version`).
+- `AudioClarity`: entry point and logger. `ModMenuIntegration`: the optional Mod Menu button.
+
+**`audio/`: the sound processing.** Everything here runs on OpenAL's mixing thread, so the per-block code never allocates (a GC pause would be an audible dropout).
+- `MasterBus`: the loopback device the game mixes into, and the callback source on the real sound card that pulls audio through the chain.
+- `Compressor`: the whole chain, frame by frame, in this order: compressor → make-up × Output → `Equalizer` → `HarshnessTamer` (presence) → `HarshnessTamer` (sizzle) → `LookaheadLimiter` → clamp. It also fills the meter values.
+- `Equalizer` (RBJ biquads), `HarshnessTamer` (a band-pass detector comparing the band with the rest of the sound; cut = input − amount × band), `LookaheadLimiter` (sliding-window minimum, −1 dBFS ceiling).
+- `SoundLeveler`: loud-sound taming, from `loudness.tsv`.
+- `MusicRoute`: plays music, UI and skip-list sounds on the sound card's context, around the chain.
+- `MusicDuck` (music fades down in game), `OutputWatcher` (playing sounds pick up a new Output at once).
+- `CompressorMeter` (Music & Sound), `HudMeter` (HUD).
+
+**`gui/`: the settings screens**
+- `TabbedScreen`: the tab bar, the "Change the tuning?" lock (`addTuning(...)`), saving on close.
+- `SettingsScreen` (General), `CompressorScreen` (Dynamics), `GainsScreen` (Gains), `HarshnessScreen` (Harshness).
+- `OutputVolumeSlider`: the Master Volume slider in Music & Sound. `Screens`: opens a screen on every version.
+
+**`mixin/`: the hooks into Minecraft**
+- `LibraryMasterBusMixin` + `LibraryInvoker`: swap the game's sound device for the loopback, 16 streaming channels.
+- `SoundEngineMixerMixin`: per-sound gain (rules, taming, the gain for sounds that go around the chain), sends skipping sounds to `MusicRoute`, the sound log.
+- `OptionsSoundMixMixin`: the category mix, the music fade and Output for sounds around the chain.
+- `ChannelGainMixin`, `ChannelHandleMusicMixin`, `ChannelAccessAccessor`: channels that live on the sound card's context; the gain cap for boosted sounds.
+- `MinecraftTickMixin`: every tick, the config poll, the one-time slider reset and Master move, the music fade and the Output watcher.
+- `SoundOptionsOutputMixin` (Master → Master Volume), `SoundOptionsCompressorButtonMixin` (the settings button), `MusicSoundFooterMixin` + `ScreenMeterMixin` (the meter in Music & Sound, saving on close).
+- `HudMeterMixin` (26.2+) and `GuiHudMeterMixin` (26.1): the HUD meter.
+- `SoundPhysicsSkipMusicMixin`: optional Sound Physics Remastered compatibility.
+
+### Version differences (26.1 – 26.4)
+
+One jar runs on all four because the code bridges these:
+- Opening a screen: `Minecraft.setScreen` on 26.1, `Minecraft.gui.setScreen` on 26.2+ (`gui/Screens` picks one at runtime).
+- The HUD is drawn by `Gui` on 26.1 and by `Hud` on 26.2+: two mixins, `require = 0` and `@Pseudo`.
+- `OptionsList.addBig(AbstractWidget)` only exists from 26.2 (`OutputVolumeSlider` falls back to `addSmall`).
+- `AbstractWidget.visible` is private on 26.4.
+- "Is the debug screen open?": use `debugEntries.isOverlayVisible()`. `showDebugScreen()` is also true while single debug lines such as FPS are shown.
+
+Compile against every supported version before a release (`build.ps1 -McVersion …`). When adding a mixin, check that its target methods and the calls it hooks exist in each version (a `javap -c` diff of the target classes works well).
+
+### The measurements
+
+- `loudness.tsv`: the EBU R128 max momentary (400 ms) loudness of every vanilla sound effect file, from the 26.3 assets (asset index 34), measured with ffmpeg's `ebur128` filter. The reference level is their median, −25.6 LUFS.
+- The sound rules in `DEFAULT_SOUNDS` came from comparing each sound event with its family (same kind, same action: every block "break", every mob "hurt"), with each mob's code volume (`getSoundVolume`) applied, then cutting about two thirds of the excess.
+- The harshness thresholds came from measuring band-vs-rest on 400 random vanilla sounds through the default EQ, and on a server recording.
+- The compressor, category levels and per-sound tweaks were tuned by ear in game; compressor candidates were simulated on a recording first.
+
+The measuring scripts were one-off tools and aren't in the repo; the method above is enough to redo them.
+
+### Adding a setting
+
+1. In `ClarityConfig`: a field, a default, a getter and setter, a read in `load()` through `bool`/`num`/`section` (so a missing key is written back to the file) and a write in `save()`.
+2. If it changes the sound for people who already have a config, bump `CONFIG_VERSION` and extend the migration in `load()`.
+3. In the GUI: a control in the right tab. Tuning controls go through `addTuning(...)`, so they're locked like the others.
+
 ## How this was made
 
 Better Audio Clarity was built with AI assistance. The code was written with the help of Claude (Anthropic), under human direction.

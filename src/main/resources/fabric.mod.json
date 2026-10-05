@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
   "id": "better_audio_clarity",
-  "version": "1.2.0-beta.30+26.1-26.4",
+  "version": "1.2.0+26.1-26.4",
   "name": "Better Audio Clarity",
-  "description": "A mastering chain for Minecraft's sound: a live master compressor, global EQ and limiter (the Master slider stays the final gain), music that skips the compressor, a tuned category mix and per-sound adjustments, and a small compressor meter in Music & Sound. Everything is set in config/better-audio-clarity.json. Client-side only.",
+  "description": "A mastering chain for Minecraft's sound: a gentle leveling compressor, global EQ, a two-band harshness tamer and a lookahead limiter, loud-sound taming and a measured rebalance of accidentally loud sounds, music that skips the chain and steps back in game, and one Master Volume in dB. Settings in Music & Sound or Mod Menu; meters in Music & Sound and on the HUD. Client-side only.",
   "authors": ["Vymnkoo"],
   "contact": {
     "homepage": "https://github.com/Vymnkoo/Better-Audio-Clarity",

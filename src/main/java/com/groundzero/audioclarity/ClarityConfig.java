@@ -179,6 +179,8 @@ public final class ClarityConfig {
             "minecraft:entity.mule.angry", -5.0f,
             "minecraft:entity.pig.step", -4.0f);
 
+    /** Bumped when a new version needs older files' tuning reset (2 = 1.2.0). */
+    static final int CONFIG_VERSION = 2;
     public static final float MUTE_DB = -40f;
     private static final int MAX_BANDS = 10;
 
@@ -629,6 +631,26 @@ public final class ClarityConfig {
         sounds = s;
         gainCache.clear();
 
+        // A file from 1.1.x has the old tuning (compressor, category levels, 8 sound rules); 1.2's
+        // sound is built on new values throughout, so reset the tuning once - personal settings
+        // (switches, meters, music fade) stay - and keep the old file next to it.
+        int version = o.has("config_version") ? o.get("config_version").getAsInt() : 1;
+        if (exists && version < CONFIG_VERSION) {
+            Path backup = f.resolveSibling("better-audio-clarity.1.1-backup.json");
+            try {
+                Files.copy(f, backup, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+            } catch (Exception e) {
+                LOGGER.warn("Could not back up the old config: {}", e.toString());
+            }
+            compressor = DEFAULT_COMPRESSOR;
+            mix = DEFAULT_MIX;
+            sounds = DEFAULT_SOUNDS;
+            soundGroups = hasGroups(DEFAULT_SOUNDS);
+            skipSounds = DEFAULT_SKIP_SOUNDS;
+            missing = true;
+            LOGGER.info("Config from 1.1.x: tuning reset to the 1.2 defaults (old file saved as {})", backup.getFileName());
+        }
+
         if (missing) {
             save();
         }
@@ -669,6 +691,7 @@ public final class ClarityConfig {
         o.addProperty("_help", "Better Audio Clarity settings. Saved changes apply within a second "
                 + "(master_bus and latency: press F3+T). master_bus=false turns the whole chain off - "
                 + "use it if the game has no sound or crackles.");
+        o.addProperty("config_version", CONFIG_VERSION);
         o.addProperty("master_bus", masterBus);
         o.addProperty("music_skips_compressor", musicSkipsCompressor);
         o.addProperty("ui_skips_compressor", uiSkipsCompressor);

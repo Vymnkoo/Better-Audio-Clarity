@@ -33,7 +33,7 @@ sounds (category mix, per-sound adjustments, loud-sound taming)
 - **Measured sound rebalance.** All ~2,000 sound events were compared with similar ones (every block "break", every mob "hurt"…), with each mob's own in-game volume taken into account. 43 sounds that were loud by accident are turned down, e.g. anvil placing, glass breaking, ladders, shulker boxes, cow and hoglin footsteps, the horse family, and the new ice and icicle sounds of 26.4. Sounds that are meant to be big (explosions, the Warden, the Dragon, totems) keep their weight.
 - **Harshness tamer.** A two-band dynamic EQ after the EQ. It only acts while a sound's harsh band sticks out from the rest of that sound:
   - **Presence** (~3.5 kHz): piercing sounds.
-  - **Sizzle** (~10 kHz): coins and other bright "tss" sounds.
+  - **Sizzle** (~8 kHz, wide): coins, the ringing of ice and icicles, and other bright "tss" sounds.
 
   Calibrated on 400 vanilla sounds and a server recording: most vanilla sounds are never touched.
 - **Global EQ.** Up to 10 bands (highpass, lowpass, lowshelf, highshelf, peak) after the compressor. The default curve brightens Minecraft's muffled tone:

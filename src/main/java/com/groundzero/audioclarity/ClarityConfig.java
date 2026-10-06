@@ -94,10 +94,14 @@ public final class ClarityConfig {
     public static final Tamer DEFAULT_TAMER = new Tamer(true, 3500f, 1.0f, 4f, 4f, 8f, 2f, 80f);
 
     /**
-     * The second band: sizzle around 10 kHz - coin sounds and the like. Vanilla sounds rarely put
-     * that band above the rest (95th percentile +1.9 dB), server coins reach +6 to +9 dB.
+     * The second band: sizzle and ringing, centred at 8 kHz and wide (Q 0.8, about 5.5-11.5 kHz) -
+     * server coins (~10 kHz) and the ringing of 26.4's ice and icicle sounds (6-9 kHz). At 10 kHz it
+     * missed the ice; at 8 kHz it catches 46 of the 72 ice files and the coins even harder, while
+     * 360 of 400 vanilla sounds are still never touched.
      */
-    public static final Tamer DEFAULT_SIZZLE = new Tamer(true, 10000f, 1.2f, 3f, 6f, 10f, 1f, 60f);
+    public static final Tamer DEFAULT_SIZZLE = new Tamer(true, 8000f, 0.8f, 3f, 6f, 10f, 1f, 60f);
+    /** The 1.2.0 sizzle band, replaced on upgrade when the player hadn't changed it. */
+    private static final Tamer OLD_SIZZLE = new Tamer(true, 10000f, 1.2f, 3f, 6f, 10f, 1f, 60f);
 
     /**
      * Against Minecraft's dark, muffled tone: clear sub rumble, take a little mud out of the
@@ -657,6 +661,9 @@ public final class ClarityConfig {
             soundGroups = hasGroups(merged);
             gainCache.clear();
             missing = true;
+            if (sizzle.equals(OLD_SIZZLE)) {
+                sizzle = DEFAULT_SIZZLE;   // the untouched 1.2.0 band moves to 8 kHz
+            }
             LOGGER.info("Config from 1.2.0: added {} new default sound rule(s)", added);
         }
         if (exists && version < 2) {

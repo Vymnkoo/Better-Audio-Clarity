@@ -93,7 +93,7 @@ public class HarshnessScreen extends TabbedScreen {
     }
 
     private static Component bandLabel() {
-        return Component.literal(band == 0 ? "Band: Presence (harsh, ~3.5 kHz)  >" : "Band: Sizzle (coins, ~10 kHz)  >");
+        return Component.literal(band == 0 ? "Band: Presence (harsh, ~3.5 kHz)  >" : "Band: Sizzle (coins, ringing, ~8 kHz)  >");
     }
 
     private Component enabledLabel() {

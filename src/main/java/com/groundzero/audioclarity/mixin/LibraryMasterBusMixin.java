@@ -53,10 +53,25 @@ public abstract class LibraryMasterBusMixin {
      * Vanilla keeps only up to 8 streaming channels (the rest are for fully loaded sounds). Music
      * and UI sounds stream while they skip the chain, and quick UI sounds - a sword tick spammed
      * in PvP - could run out; 16 is plenty and costs the loaded pool (~250) nothing noticeable.
+     *
+     * <p>The first clamp in init is the streaming count. Up to 26.4-snapshot-2 it is
+     * Mth.clamp(int, int, int); from snapshot-3 Mojang uses java.lang.Math.clamp(long, int, int)
+     * there. One redirect per form, each optional, so whichever the game has is hooked.
      */
-    @Redirect(method = "init", at = @At(value = "INVOKE", target = "Lnet/minecraft/util/Mth;clamp(III)I", ordinal = 0))
+    @Redirect(method = "init", at = @At(value = "INVOKE", target = "Lnet/minecraft/util/Mth;clamp(III)I", ordinal = 0),
+            require = 0)
     private int audioclarity$moreStreamingChannels(int value, int min, int max) {
-        int vanilla = net.minecraft.util.Mth.clamp(value, min, max);
+        return audioclarity$streaming(Math.max(min, Math.min(max, value)));
+    }
+
+    @Redirect(method = "init", at = @At(value = "INVOKE", target = "Ljava/lang/Math;clamp(JII)I", ordinal = 0),
+            require = 0)
+    private int audioclarity$moreStreamingChannelsLong(long value, int min, int max) {
+        return audioclarity$streaming((int) Math.max(min, Math.min(max, value)));
+    }
+
+    @Unique
+    private int audioclarity$streaming(int vanilla) {
         return audioclarity$bus != null ? Math.max(vanilla, 16) : vanilla;
     }
 

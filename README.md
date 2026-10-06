@@ -159,6 +159,7 @@ One jar runs on all four because the code bridges these:
 - The HUD is drawn by `Gui` on 26.1 and by `Hud` on 26.2+: two mixins, `require = 0` and `@Pseudo`.
 - `OptionsList.addBig(AbstractWidget)` only exists from 26.2 (`OutputVolumeSlider` falls back to `addSmall`).
 - `AbstractWidget.visible` is private on 26.4.
+- The streaming channel count in `Library.init` is clamped with `Mth.clamp(int, int, int)` up to 26.4-snapshot-2 and with `java.lang.Math.clamp(long, int, int)` from snapshot-3: `LibraryMasterBusMixin` redirects both, each optional.
 - "Is the debug screen open?": use `debugEntries.isOverlayVisible()`. `showDebugScreen()` is also true while single debug lines such as FPS are shown.
 
 Compile against every supported version before a release (`build.ps1 -McVersion …`). When adding a mixin, check that its target methods and the calls it hooks exist in each version (a `javap -c` diff of the target classes works well).

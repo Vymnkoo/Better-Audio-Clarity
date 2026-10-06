@@ -177,10 +177,19 @@ public final class ClarityConfig {
             "minecraft:entity.zoglin.step", -5.0f,
             "minecraft:entity.donkey.angry", -5.0f,
             "minecraft:entity.mule.angry", -5.0f,
-            "minecraft:entity.pig.step", -4.0f);
+            "minecraft:entity.pig.step", -4.0f,
+            // New in 26.4-snapshot-3 (ice caves), measured the same way: about two thirds of the excess over
+            // their family. The freezing effect is as loud as the other status effects, on purpose.
+            "minecraft:block.icicle.break", -7.0f,
+            "minecraft:block.ice.break", -6.0f,
+            "minecraft:block.icicle.land", -5.0f,
+            "minecraft:block.icicle.step", -5.0f,
+            "minecraft:block.ice_crystal.break", -4.0f,
+            "minecraft:block.icicle.hit", -4.0f,
+            "minecraft:block.icicle.fall", -4.0f);
 
-    /** Bumped when a new version needs older files' tuning reset (2 = 1.2.0). */
-    static final int CONFIG_VERSION = 2;
+    /** Bumped when older files need updating: 2 = 1.2.0 (tuning reset), 3 = 1.2.1 (new default sound rules added). */
+    static final int CONFIG_VERSION = 3;
     public static final float MUTE_DB = -40f;
     private static final int MAX_BANDS = 10;
 
@@ -635,7 +644,22 @@ public final class ClarityConfig {
         // sound is built on new values throughout, so reset the tuning once - personal settings
         // (switches, meters, music fade) stay - and keep the old file next to it.
         int version = o.has("config_version") ? o.get("config_version").getAsInt() : 1;
-        if (exists && version < CONFIG_VERSION) {
+        if (exists && version == 2) {
+            // From 1.2.0: keep every rule the player has, add the default rules that are new since.
+            Map<String, Float> merged = new LinkedHashMap<>(sounds);
+            int added = 0;
+            for (Map.Entry<String, Float> rule : DEFAULT_SOUNDS.entrySet()) {
+                if (merged.putIfAbsent(rule.getKey(), rule.getValue()) == null) {
+                    added++;
+                }
+            }
+            sounds = Collections.unmodifiableMap(merged);
+            soundGroups = hasGroups(merged);
+            gainCache.clear();
+            missing = true;
+            LOGGER.info("Config from 1.2.0: added {} new default sound rule(s)", added);
+        }
+        if (exists && version < 2) {
             Path backup = f.resolveSibling("better-audio-clarity.1.1-backup.json");
             try {
                 Files.copy(f, backup, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
